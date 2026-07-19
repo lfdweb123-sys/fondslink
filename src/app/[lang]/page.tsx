@@ -173,12 +173,7 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
                 transition={{ delay: 0.3, duration: 0.6 }}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-[#D4AF37]/5 border border-[#D4AF37]/20 rounded-full mb-8"
               >
-                <span className="w-2 h-2 bg-[#D4AF37] rounded-full animate-pulse" />
-                <span className="text-gray-700 text-sm font-medium">
-                  {lang === 'nl' ? 'Snelle financiering binnen 24u' : 
-                   lang === 'en' ? 'Fast financing within 24h' : 
-                   'Financiación rápida en 24h'}
-                </span>
+                
               </motion.div>
               
               <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 leading-tight text-gray-900">
