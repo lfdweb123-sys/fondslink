@@ -29,6 +29,13 @@ export default function RootLayout({
     lang === 'en' ? 'contactus@fondslink.com' :
     'contacto@fondslink.com';
 
+  // Fonction pour changer de langue en gardant le même chemin
+  const getLocalizedPath = (newLang: string) => {
+    // Enlever le préfixe de langue actuel du pathname
+    const pathWithoutLang = pathname.replace(`/${lang}`, '') || '/';
+    return `/${newLang}${pathWithoutLang}`;
+  };
+
   return (
     <html lang={lang}>
       <body className={`${inter.className} bg-white text-black antialiased`}>
@@ -68,7 +75,7 @@ export default function RootLayout({
                   {locales.map((locale) => (
                     <Link 
                       key={locale} 
-                      href={`/${locale}`}
+                      href={getLocalizedPath(locale)}
                       className={`px-2 py-1 rounded transition-colors ${
                         lang === locale 
                           ? 'font-bold text-[#D4AF37] bg-[#D4AF37]/10' 
@@ -136,7 +143,7 @@ export default function RootLayout({
                   {locales.map((locale) => (
                     <Link 
                       key={locale} 
-                      href={`/${locale}`}
+                      href={getLocalizedPath(locale)}
                       className={`px-3 py-1 rounded text-xs ${
                         lang === locale 
                           ? 'font-bold text-[#D4AF37] bg-[#D4AF37]/10' 
