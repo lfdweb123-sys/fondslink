@@ -1,15 +1,13 @@
-
 // src/app/[lang]/page.tsx
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, use } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
-import { getTranslations, Locale } from '@/lib/i18n';
+import { getTranslations, type Locale } from '@/lib/i18n';
 import LoanModal from '@/components/LoanModal';
 
-// Icônes SVG réutilisables
 const Icons = {
   ArrowRight: () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -80,22 +78,19 @@ const Icons = {
 };
 
 export default function HomePage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = use(params);
+  const t = getTranslations(lang as Locale);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [counters, setCounters] = useState({ clients: 0, loans: 0, satisfaction: 0 });
   const statsRef = useRef(null);
   const isStatsInView = useInView(statsRef, { once: true });
-  
-  const lang = (params as any).lang as Locale;
-  const t = getTranslations(lang);
 
-  // Animation des compteurs
   useEffect(() => {
     if (isStatsInView) {
       const duration = 2000;
       const steps = 60;
       const interval = duration / steps;
-      
       let step = 0;
       const timer = setInterval(() => {
         step++;
@@ -104,135 +99,56 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
           loans: Math.min(Math.floor((step / steps) * 98), 98),
           satisfaction: Math.min(Math.floor((step / steps) * 25), 25)
         });
-        
         if (step >= steps) clearInterval(timer);
       }, interval);
-      
       return () => clearInterval(timer);
     }
   }, [isStatsInView]);
 
-  // Témoignages en rotation automatique
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
+      setActiveTestimonial((prev) => (prev + 1) % t.testimonials.items.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [t.testimonials.items.length]);
 
-  const testimonials = [
-    {
-      text: lang === 'nl' ? "Uitstekende service! Mijn lening werd in minder dan 24 uur goedgekeurd. Het proces was eenvoudig en het team zeer professioneel." : 
-            lang === 'en' ? "Excellent service! My loan was approved in less than 24 hours. The process was simple and the team very professional." :
-            "¡Servicio excelente! Mi préstamo fue aprobado en menos de 24 horas. El proceso fue simple y el equipo muy profesional.",
-      name: lang === 'nl' ? 'Tevreden klant' : lang === 'en' ? 'Satisfied customer' : 'Cliente satisfecho',
-      role: lang === 'nl' ? 'Ondernemer' : lang === 'en' ? 'Entrepreneur' : 'Emprendedor'
-    },
-    {
-      text: lang === 'nl' ? "Een snelle en efficiënte financieringsoplossing. Ik beveel het ten zeerste aan bij alle ondernemers." :
-            lang === 'en' ? "A fast and efficient financing solution. I highly recommend it to all entrepreneurs." :
-            "Una solución de financiación rápida y eficiente. Lo recomiendo encarecidamente a todos los emprendedores.",
-      name: lang === 'nl' ? 'Tevreden klant' : lang === 'en' ? 'Satisfied customer' : 'Cliente satisfecho',
-      role: lang === 'nl' ? 'ZZP\'er' : lang === 'en' ? 'Freelancer' : 'Freelance'
-    },
-    {
-      text: lang === 'nl' ? "Team dat luistert en zeer responsief is. Het proces is transparant en de voorwaarden zijn duidelijk." :
-            lang === 'en' ? "A team that listens and is very responsive. The process is transparent and the conditions are clear." :
-            "Un equipo que escucha y es muy receptivo. El proceso es transparente y las condiciones son claras.",
-      name: lang === 'nl' ? 'Tevreden klant' : lang === 'en' ? 'Satisfied customer' : 'Cliente satisfecho',
-      role: lang === 'nl' ? 'Directeur MKB' : lang === 'en' ? 'SME Director' : 'Director PYME'
-    }
-  ];
+  const iconList = [<Icons.Clock key="clock" />, <Icons.FileText key="file" />, <Icons.Check key="check" />, <Icons.Shield key="shield" />, <Icons.CreditCard key="card" />, <Icons.Users key="users" />];
 
   return (
     <div className="bg-white">
-      {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center overflow-hidden bg-white">
-        {/* Fond géométrique subtil */}
         <div className="absolute inset-0 z-0 opacity-5">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, #000 1px, transparent 0)`,
-            backgroundSize: '40px 40px'
-          }} />
+          <div className="absolute inset-0" style={{ backgroundImage: `radial-gradient(circle at 1px 1px, #000 1px, transparent 0)`, backgroundSize: '40px 40px' }} />
         </div>
-        
-        {/* Éléments décoratifs */}
         <div className="absolute top-20 right-0 w-96 h-96 bg-[#D4AF37]/5 rounded-full blur-3xl" />
         <div className="absolute bottom-20 left-0 w-96 h-96 bg-gray-900/5 rounded-full blur-3xl" />
-
         <div className="max-w-7xl mx-auto px-6 relative z-10 w-full py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.6 }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#D4AF37]/5 border border-[#D4AF37]/20 rounded-full mb-8"
-              >
-                
+            <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.6 }} className="inline-flex items-center gap-2 px-4 py-2 bg-[#D4AF37]/5 border border-[#D4AF37]/20 rounded-full mb-8">
+                <span className="w-2 h-2 bg-[#D4AF37] rounded-full animate-pulse" />
+                <span className="text-gray-700 text-sm font-medium">{t.hero.badge}</span>
               </motion.div>
-              
-              <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 leading-tight text-gray-900">
-                {t.hero.title}
-              </h1>
-              
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-                className="text-xl text-gray-600 mb-10 leading-relaxed"
-              >
-                {t.hero.subtitle}
-              </motion.p>
-              
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.9 }}
-                className="flex flex-wrap gap-4"
-              >
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setIsModalOpen(true)}
-                  className="group px-8 py-4 bg-[#D4AF37] text-white font-semibold rounded-lg hover:bg-[#C4A02E] transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
-                >
+              <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 leading-tight text-gray-900">{t.hero.title}</h1>
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="text-xl text-gray-600 mb-10 leading-relaxed">{t.hero.subtitle}</motion.p>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }} className="flex flex-wrap gap-4">
+                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setIsModalOpen(true)} className="group px-8 py-4 bg-[#D4AF37] text-white font-semibold rounded-lg hover:bg-[#C4A02E] transition-all shadow-lg hover:shadow-xl flex items-center gap-2">
                   {t.hero.cta}
-                  <span className="group-hover:translate-x-1 transition-transform">
-                    <Icons.ArrowRight />
-                  </span>
+                  <span className="group-hover:translate-x-1 transition-transform"><Icons.ArrowRight /></span>
                 </motion.button>
-                
                 <Link href={`/${lang}/contact`}>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-8 py-4 border-2 border-gray-200 text-gray-900 font-semibold rounded-lg hover:border-[#D4AF37] transition-all flex items-center gap-2"
-                  >
+                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="px-8 py-4 border-2 border-gray-200 text-gray-900 font-semibold rounded-lg hover:border-[#D4AF37] transition-all flex items-center gap-2">
                     <Icons.Phone />
-                    {lang === 'nl' ? 'Contact opnemen' : lang === 'en' ? 'Contact us' : 'Contactar'}
+                    {t.nav.contact}
                   </motion.button>
                 </Link>
               </motion.div>
-              
-              {/* Social Proof */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.2 }}
-                className="mt-12 flex items-center gap-6 p-4 bg-gray-50 rounded-xl border border-gray-100"
-              >
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} className="mt-12 flex items-center gap-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
                 <div className="flex items-center gap-2">
                   <Icons.Users />
                   <div>
                     <div className="text-2xl font-bold text-gray-900">+15.000</div>
-                    <div className="text-sm text-gray-600">
-                      {lang === 'nl' ? 'tevreden klanten' : lang === 'en' ? 'satisfied customers' : 'clientes satisfechos'}
-                    </div>
+                    <div className="text-sm text-gray-600">{t.socialProof.clients}</div>
                   </div>
                 </div>
                 <div className="w-px h-12 bg-gray-200" />
@@ -240,49 +156,22 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
                   <Icons.Star />
                   <div>
                     <div className="text-2xl font-bold text-gray-900">4.9/5</div>
-                    <div className="text-sm text-gray-600">
-                      {lang === 'nl' ? 'klantbeoordeling' : lang === 'en' ? 'customer rating' : 'valoración clientes'}
-                    </div>
+                    <div className="text-sm text-gray-600">{t.socialProof.rating}</div>
                   </div>
                 </div>
               </motion.div>
             </motion.div>
-            
-            {/* Image Héro avec animations */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative hidden lg:block"
-            >
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="relative"
-              >
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.2 }} className="relative hidden lg:block">
+              <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="relative">
                 <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-gray-100">
-                  <Image
-                    src="/images/hero-signing.png"
-                    alt="Professionele financiering"
-                    fill
-                    className="object-cover"
-                    priority
-                  />
+                  <Image src="/images/hero-signing.png" alt="Professionele financiering" fill className="object-cover" priority />
                   <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent" />
-                  
-                  {/* Badge flottant */}
-                  <motion.div
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 3, repeat: Infinity, delay: 1 }}
-                    className="absolute top-8 right-8 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-gray-100"
-                  >
+                  <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 3, repeat: Infinity, delay: 1 }} className="absolute top-8 right-8 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-gray-100">
                     <div className="flex items-center gap-2">
                       <Icons.Shield />
                       <div>
                         <div className="text-[#D4AF37] font-bold text-lg">98%</div>
-                        <div className="text-gray-600 text-xs">
-                          {lang === 'nl' ? 'Goedgekeurd' : lang === 'en' ? 'Approved' : 'Aprobado'}
-                        </div>
+                        <div className="text-gray-600 text-xs">{t.stats.approval}</div>
                       </div>
                     </div>
                   </motion.div>
@@ -291,45 +180,24 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
             </motion.div>
           </div>
         </div>
-        
-        {/* Scroll indicator */}
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-        >
+        <motion.div animate={{ y: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity }} className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
           <div className="w-6 h-10 border-2 border-gray-300 rounded-full flex justify-center">
-            <motion.div
-              animate={{ y: [0, 15, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="w-1.5 h-3 bg-[#D4AF37] rounded-full mt-2"
-            />
+            <motion.div animate={{ y: [0, 15, 0] }} transition={{ duration: 2, repeat: Infinity }} className="w-1.5 h-3 bg-[#D4AF37] rounded-full mt-2" />
           </div>
         </motion.div>
       </section>
 
-      {/* STATS SECTION avec compteurs animés */}
       <section ref={statsRef} className="py-20 bg-gray-900">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid md:grid-cols-3 gap-12">
             {[
-              { value: counters.clients, suffix: '+', label: lang === 'nl' ? 'Tevreden klanten' : lang === 'en' ? 'Satisfied customers' : 'Clientes satisfechos', icon: <Icons.Users /> },
-              { value: counters.loans, suffix: '%', label: lang === 'nl' ? 'Goedkeuringspercentage' : lang === 'en' ? 'Approval rate' : 'Tasa de aprobación', icon: <Icons.Check /> },
-              { value: counters.satisfaction, suffix: '+', label: lang === 'nl' ? 'Jaar ervaring' : lang === 'en' ? 'Years of experience' : 'Años de experiencia', icon: <Icons.Clock /> }
+              { value: counters.clients, suffix: '+', label: t.stats.clients, icon: <Icons.Users /> },
+              { value: counters.loans, suffix: '%', label: t.stats.approval, icon: <Icons.Check /> },
+              { value: counters.satisfaction, suffix: '+', label: t.stats.experience, icon: <Icons.Clock /> }
             ].map((stat, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.2 }}
-                className="text-center"
-              >
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-xl mb-4 text-white">
-                  {stat.icon}
-                </div>
-                <div className="text-5xl font-bold text-white mb-2">
-                  {stat.value.toLocaleString()}{stat.suffix}
-                </div>
+              <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.2 }} className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-xl mb-4 text-white">{stat.icon}</div>
+                <div className="text-5xl font-bold text-white mb-2">{stat.value.toLocaleString()}{stat.suffix}</div>
                 <div className="text-gray-400 text-lg">{stat.label}</div>
               </motion.div>
             ))}
@@ -337,110 +205,44 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
         </div>
       </section>
 
-      {/* AVANTAGES - Design épuré */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            className="text-center mb-16"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 text-gray-900">{t.benefits.title}</h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              {lang === 'nl' ? 'Ontdek waarom duizenden klanten voor onze financieringsoplossingen kiezen' :
-               lang === 'en' ? 'Discover why thousands of customers choose our financing solutions' :
-               'Descubra por qué miles de clientes eligen nuestras soluciones de financiación'}
-            </p>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">{t.benefits.subtitle}</p>
           </motion.div>
-          
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {t.benefits.items.map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                whileHover={{ y: -5 }}
-                className="group bg-white p-8 rounded-xl border border-gray-200 hover:border-[#D4AF37] hover:shadow-xl transition-all duration-300"
-              >
+              <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} whileHover={{ y: -5 }} className="group bg-white p-8 rounded-xl border border-gray-200 hover:border-[#D4AF37] hover:shadow-xl transition-all duration-300">
                 <div className="w-14 h-14 bg-gray-50 group-hover:bg-[#D4AF37]/10 rounded-lg flex items-center justify-center mb-6 transition-colors">
-                  <div className="text-[#D4AF37]">
-                    {[<Icons.Clock key="clock" />, <Icons.FileText key="file" />, <Icons.Check key="check" />, 
-                      <Icons.Shield key="shield" />, <Icons.CreditCard key="card" />, <Icons.Users key="users" />][i]}
-                  </div>
+                  <div className="text-[#D4AF37]">{iconList[i]}</div>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">{item}</h3>
-                <p className="text-gray-600 text-sm">
-                  {lang === 'nl' ? 'Professionele service met gegarandeerde kwaliteit en veiligheid.' :
-                   lang === 'en' ? 'Professional service with guaranteed quality and security.' :
-                   'Servicio profesional con calidad y seguridad garantizadas.'}
-                </p>
+                <p className="text-gray-600 text-sm">{t.benefits.description}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* COMMENT ÇA MARCHE - Timeline */}
       <section className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            className="text-center mb-16"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 text-gray-900">{t.steps.title}</h2>
-            <p className="text-gray-600 text-lg">
-              {lang === 'nl' ? 'Een eenvoudig proces in 4 stappen' :
-               lang === 'en' ? 'A simple process in 4 steps' :
-               'Un proceso simple en 4 pasos'}
-            </p>
+            <p className="text-gray-600 text-lg">{t.steps.subtitle}</p>
           </motion.div>
-          
           <div className="relative">
-            {/* Ligne de progression pour desktop */}
             <div className="hidden lg:block absolute top-12 left-[12.5%] right-[12.5%] h-0.5 bg-gray-200">
-              <motion.div 
-                className="h-full bg-[#D4AF37]"
-                initial={{ width: 0 }}
-                whileInView={{ width: '100%' }}
-                transition={{ duration: 1.5, ease: "easeInOut" }}
-              />
+              <motion.div className="h-full bg-[#D4AF37]" initial={{ width: 0 }} whileInView={{ width: '100%' }} transition={{ duration: 1.5, ease: "easeInOut" }} />
             </div>
-            
             <div className="grid md:grid-cols-4 gap-8">
               {[t.steps.s1, t.steps.s2, t.steps.s3, t.steps.s4].map((step, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.2 }}
-                  className="relative text-center"
-                >
-                  <motion.div
-                    whileHover={{ scale: 1.1, rotate: 360 }}
-                    transition={{ duration: 0.6 }}
-                    className="w-24 h-24 bg-white border-2 border-[#D4AF37] rounded-full flex items-center justify-center mx-auto mb-6 relative z-10 shadow-lg"
-                  >
+                <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.2 }} className="relative text-center">
+                  <motion.div whileHover={{ scale: 1.1, rotate: 360 }} transition={{ duration: 0.6 }} className="w-24 h-24 bg-white border-2 border-[#D4AF37] rounded-full flex items-center justify-center mx-auto mb-6 relative z-10 shadow-lg">
                     <span className="text-2xl font-bold text-[#D4AF37]">{i + 1}</span>
                   </motion.div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">{step}</h3>
-                  <p className="text-gray-600 text-sm">
-                    {[
-                      lang === 'nl' ? 'Vul het online formulier in enkele minuten in' :
-                      lang === 'en' ? 'Fill out the online form in minutes' :
-                      'Complete el formulario en línea en minutos',
-                      lang === 'nl' ? 'Ontvang en onderteken digitaal uw contract' :
-                      lang === 'en' ? 'Receive and digitally sign your contract' :
-                      'Reciba y firme digitalmente su contrato',
-                      lang === 'nl' ? 'Veilige online betaling van administratiekosten' :
-                      lang === 'en' ? 'Secure online payment of administrative fees' :
-                      'Pago seguro en línea de tasas administrativas',
-                      lang === 'nl' ? 'Uw dossier wordt automatisch gevalideerd' :
-                      lang === 'en' ? 'Your file is automatically validated' :
-                      'Su expediente se valida automáticamente'
-                    ][i]}
-                  </p>
+                  <p className="text-gray-600 text-sm">{t.stepsDescriptions[i]}</p>
                 </motion.div>
               ))}
             </div>
@@ -448,158 +250,78 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
         </div>
       </section>
 
-      {/* TÉMOIGNAGES - Carousel élégant */}
       <section className="py-24 bg-white">
         <div className="max-w-4xl mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl font-bold mb-4 text-gray-900">
-              {lang === 'nl' ? 'Wat onze klanten zeggen' : lang === 'en' ? 'What our customers say' : 'Lo que dicen nuestros clientes'}
-            </h2>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4 text-gray-900">{t.testimonials.title}</h2>
           </motion.div>
-          
           <div className="relative">
             <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTestimonial}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4 }}
-                className="bg-gray-50 p-10 md:p-14 rounded-2xl border border-gray-100"
-              >
+              <motion.div key={activeTestimonial} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="bg-gray-50 p-10 md:p-14 rounded-2xl border border-gray-100">
                 <div className="flex mb-6">
                   {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-[#D4AF37]">
-                      <Icons.Star />
-                    </span>
+                    <span key={i} className="text-[#D4AF37]"><Icons.Star /></span>
                   ))}
                 </div>
                 <blockquote className="text-xl text-gray-700 mb-8 leading-relaxed">
-                  &ldquo;{testimonials[activeTestimonial].text}&rdquo;
+                  &ldquo;{t.testimonials.items[activeTestimonial].text}&rdquo;
                 </blockquote>
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                    <Icons.Users />
-                  </div>
+                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center"><Icons.Users /></div>
                   <div>
-                    <div className="font-semibold text-gray-900">{testimonials[activeTestimonial].name}</div>
-                    <div className="text-gray-500 text-sm">{testimonials[activeTestimonial].role}</div>
+                    <div className="font-semibold text-gray-900">{t.testimonials.items[activeTestimonial].name}</div>
+                    <div className="text-gray-500 text-sm">{t.testimonials.items[activeTestimonial].role}</div>
                   </div>
                 </div>
               </motion.div>
             </AnimatePresence>
-            
             <div className="flex justify-center gap-3 mt-8">
-              {testimonials.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveTestimonial(i)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    activeTestimonial === i ? 'bg-[#D4AF37] w-8' : 'bg-gray-300 w-2 hover:bg-gray-400'
-                  }`}
-                  aria-label={`Témoignage ${i + 1}`}
-                />
+              {t.testimonials.items.map((_, i) => (
+                <button key={i} onClick={() => setActiveTestimonial(i)} className={`h-2 rounded-full transition-all duration-300 ${activeTestimonial === i ? 'bg-[#D4AF37] w-8' : 'bg-gray-300 w-2 hover:bg-gray-400'}`} />
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA SECTION */}
       <section className="py-24 bg-gray-900 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)`,
-            backgroundSize: '30px 30px'
-          }} />
+          <div className="absolute inset-0" style={{ backgroundImage: `radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)`, backgroundSize: '30px 30px' }} />
         </div>
-        
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-          >
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              {lang === 'nl' ? 'Klaar om uw project te realiseren?' :
-               lang === 'en' ? 'Ready to make your project happen?' :
-               '¿Listo para hacer realidad su proyecto?'}
-            </h2>
-            <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-              {lang === 'nl' ? 'Sluit u aan bij duizenden tevreden klanten die ons vertrouwen voor hun financiering' :
-               lang === 'en' ? 'Join thousands of satisfied customers who trust us for their financing' :
-               'Únase a miles de clientes satisfechos que confían en nosotros para su financiación'}
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setIsModalOpen(true)}
-              className="px-10 py-4 bg-[#D4AF37] text-white font-bold rounded-lg hover:bg-[#C4A02E] transition-colors shadow-xl flex items-center gap-2 mx-auto"
-            >
-              {lang === 'nl' ? 'Start mijn aanvraag' : lang === 'en' ? 'Start my application' : 'Iniciar mi solicitud'}
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">{t.cta.title}</h2>
+            <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">{t.cta.subtitle}</p>
+            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setIsModalOpen(true)} className="px-10 py-4 bg-[#D4AF37] text-white font-bold rounded-lg hover:bg-[#C4A02E] transition-colors shadow-xl flex items-center gap-2 mx-auto">
+              {t.cta.button}
               <Icons.ArrowRight />
             </motion.button>
           </motion.div>
         </div>
       </section>
 
-      {/* FAQ */}
       <section className="py-24 bg-white">
         <div className="max-w-3xl mx-auto px-6">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            className="text-4xl font-bold mb-12 text-center text-gray-900"
-          >
-            FAQ
-          </motion.h2>
+          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} className="text-4xl font-bold mb-12 text-center text-gray-900">{t.faq.title}</motion.h2>
           <div className="space-y-4">
             {[
               { q: t.faq.q1, a: t.faq.a1 },
               { q: t.faq.q2, a: t.faq.a2 },
-              { 
-                q: lang === 'nl' ? 'Kan ik vervroegd aflossen?' : 
-                   lang === 'en' ? 'Can I repay early?' : 
-                   '¿Puedo amortizar anticipadamente?',
-                a: lang === 'nl' ? 'Ja, vervroegd aflossen is mogelijk zonder extra kosten. Wij moedigen financiële flexibiliteit aan.' :
-                   lang === 'en' ? 'Yes, early repayment is possible without additional fees. We encourage financial flexibility.' :
-                   'Sí, la amortización anticipada es posible sin costes adicionales. Fomentamos la flexibilidad financiera.'
-              },
-              { 
-                q: lang === 'nl' ? 'Welke documenten heb ik nodig?' :
-                   lang === 'en' ? 'What documents do I need?' :
-                   '¿Qué documentos necesito?',
-                a: lang === 'nl' ? 'U heeft een geldig identiteitsbewijs, recente loonstrook en bankafschrift nodig.' :
-                   lang === 'en' ? 'You need a valid ID, recent pay stub and bank statement.' :
-                   'Necesita un documento de identidad válido, nómina reciente y extracto bancario.'
-              }
+              { q: t.faq.q3, a: t.faq.a3 },
+              { q: t.faq.q4, a: t.faq.a4 }
             ].map((faq, i) => (
-              <motion.details
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="group bg-gray-50 p-6 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors"
-              >
+              <motion.details key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="group bg-gray-50 p-6 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
                 <summary className="font-semibold text-gray-900 list-none flex justify-between items-center gap-4">
                   {faq.q}
-                  <span className="text-[#D4AF37] flex-shrink-0 group-open:rotate-180 transition-transform duration-300">
-                    <Icons.ChevronDown />
-                  </span>
+                  <span className="text-[#D4AF37] flex-shrink-0 group-open:rotate-180 transition-transform duration-300"><Icons.ChevronDown /></span>
                 </summary>
-                <p className="mt-4 text-gray-600 leading-relaxed">
-                  {faq.a}
-                </p>
+                <p className="mt-4 text-gray-600 leading-relaxed">{faq.a}</p>
               </motion.details>
             ))}
           </div>
         </div>
       </section>
 
-      {/* MODAL DEMANDE DE PRÊT */}
       <LoanModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} lang={lang} />
     </div>
   );
