@@ -6,7 +6,7 @@ import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { getTranslations, locales } from '@/lib/i18n';
+import { getTranslations, locales, type Locale } from '@/lib/i18n';
 import LoanModal from '@/components/LoanModal';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -18,9 +18,9 @@ export default function RootLayout({
   children: React.ReactNode;
   params: Promise<{ lang: string }>;
 }) {
-  // ⚠️ CORRECTION ICI : Utiliser use() pour résoudre la Promise
   const { lang } = use(params);
-  const t = getTranslations(lang);
+  // Cast explicite vers Locale pour TypeScript
+  const t = getTranslations(lang as Locale);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -32,7 +32,6 @@ export default function RootLayout({
 
   // Fonction pour changer de langue
   const getLocalizedPath = (newLang: string) => {
-    // Enlever le préfixe de langue du pathname
     let path = pathname;
     
     // Retire /nl, /en, ou /es du début
@@ -43,7 +42,6 @@ export default function RootLayout({
       }
     }
     
-    // Si le chemin est vide, on va à la racine
     if (path === '') path = '/';
     
     return `/${newLang}${path === '/' ? '' : path}`;
