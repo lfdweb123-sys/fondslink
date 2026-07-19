@@ -6,7 +6,7 @@ import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { getTranslations, locales, type Translations } from '@/lib/i18n';
+import { getTranslations, locales } from '@/lib/i18n';
 import LoanModal from '@/components/LoanModal';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -18,7 +18,6 @@ export default function RootLayout({
   children: React.ReactNode;
   params: Promise<{ lang: string }>;
 }) {
-  // ⚠️ On utilise use() pour résoudre la Promise dans un Client Component
   const { lang } = params as any;
   const t = getTranslations(lang);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,7 +41,7 @@ export default function RootLayout({
                 FONDS<span className="text-[#D4AF37]">LINK</span>
               </Link>
               
-              {/* Navigation Desktop - Centrée */}
+              {/* Navigation Desktop - Liens centrés */}
               <nav className="hidden md:flex items-center justify-center flex-1 gap-8">
                 <Link 
                   href={`/${lang}`} 
@@ -60,9 +59,12 @@ export default function RootLayout({
                 >
                   {t.nav.contact}
                 </Link>
-                
+              </nav>
+
+              {/* Partie droite : Langues + Bouton Apply */}
+              <div className="hidden md:flex items-center gap-6 flex-shrink-0">
                 {/* Sélecteur de langue */}
-                <div className="flex items-center gap-2 text-xs border-l pl-6 ml-2">
+                <div className="flex items-center gap-2 text-xs">
                   {locales.map((locale) => (
                     <Link 
                       key={locale} 
@@ -78,14 +80,14 @@ export default function RootLayout({
                   ))}
                 </div>
 
-                {/* Bouton Apply */}
+                {/* Bouton Apply - Noir, seul à droite */}
                 <button 
                   onClick={() => setIsModalOpen(true)}
                   className="btn-primary text-sm cursor-pointer whitespace-nowrap"
                 >
                   {t.nav.apply}
                 </button>
-              </nav>
+              </div>
 
               {/* Bouton Menu Mobile */}
               <button 
