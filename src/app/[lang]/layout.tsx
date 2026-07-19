@@ -31,8 +31,17 @@ export default function RootLayout({
 
   // Fonction pour changer de langue en gardant le même chemin
   const getLocalizedPath = (newLang: string) => {
-    // Enlever le préfixe de langue actuel du pathname
-    const pathWithoutLang = pathname.replace(`/${lang}`, '') || '/';
+    // pathname ressemble à /nl/contact ou /nl ou /en
+    // On enlève le premier segment (la langue actuelle)
+    const segments = pathname.split('/').filter(Boolean); // ['nl', 'contact'] ou ['nl']
+    
+    // Si le premier segment est une langue valide, on le retire
+    if (locales.includes(segments[0] as any)) {
+      segments.shift(); // retire la langue actuelle
+    }
+    
+    // Reconstruction du chemin avec la nouvelle langue
+    const pathWithoutLang = segments.length > 0 ? `/${segments.join('/')}` : '';
     return `/${newLang}${pathWithoutLang}`;
   };
 
