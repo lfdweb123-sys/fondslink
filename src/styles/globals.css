@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-gold: #D4AF37;
+    --color-black: #0a0a0a;
+    --color-white: #ffffff;
+  }
+  
+  body {
+    @apply bg-white text-black font-sans antialiased;
+  }
+  
+  .btn-primary {
+    @apply bg-black text-white px-8 py-3 rounded-md hover:bg-gray-900 transition-all shadow-sm;
+  }
+  
+  .btn-gold {
+    @apply bg-[#D4AF37] text-black px-8 py-3 rounded-md hover:bg-yellow-600 transition-all shadow-sm;
+  }
+  
+  .input-field {
+    @apply w-full border border-gray-300 rounded-md px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all;
+  }
+}
