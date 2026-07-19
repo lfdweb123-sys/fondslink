@@ -1,5 +1,5 @@
 // src/lib/firebase.ts
-import { initializeApp, getApps } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
@@ -13,10 +13,8 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Éviter la double initialisation en SSR/Dev
-const app = typeof window !== 'undefined' && getApps().length === 0 
-  ? initializeApp(firebaseConfig) 
-  : getApps()[0];
+// Initialisation sécurisée pour Next.js (Fonctionne à la fois côté Serveur ET Client)
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
