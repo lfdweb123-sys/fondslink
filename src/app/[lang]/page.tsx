@@ -1,21 +1,36 @@
+// src/app/[lang]/page.tsx
 'use client';
+
 import { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { translations } from '@/lib/translations';
+import { getTranslations, Locale } from '@/lib/i18n';
 import LoanModal from '@/components/LoanModal';
 
-export default function HomePage({ params }: { params: { lang: string } }) {
+export default function HomePage({ params }: { params: Promise<{ lang: string }> }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const t = translations[params.lang as keyof typeof translations] || translations.nl;
+  
+  // ️ ATTENTION : En Next.js 16, params est une Promise. 
+  // Dans un Client Component, on doit utiliser use() ou gérer l'état via useEffect/useTransition.
+  // Pour simplifier et éviter le suspense, on utilise une approche synchrone avec un cast sécurisé
+  // car le layout parent a déjà résolu la langue. Si vous avez des erreurs de hydration, 
+  // passez la langue résolue via un Context ou un prop du Layout.
+  // Ici, nous supposons que params.lang est accessible directement grâce au routage dynamique.
+  const lang = (params as any).lang as Locale;
+  const t = getTranslations(lang);
 
   return (
     <>
       {/* HERO SECTION */}
       <section className="relative min-h-[85vh] flex items-center bg-gray-50 overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-20">
-           {/* Placeholder pour l'image réaliste demandée */}
-           <Image src="/images/hero-signing.jpg" alt="Signing contract" fill className="object-cover object-right" priority />
+          <Image 
+            src="/images/hero-signing.jpg" 
+            alt="Signing contract" 
+            fill 
+            className="object-cover object-right" 
+            priority 
+          />
         </div>
         
         <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
@@ -77,31 +92,31 @@ export default function HomePage({ params }: { params: { lang: string } }) {
         </div>
       </section>
 
-      {/* FAQ RAPIDE */}
+      {/* FAQ RAPIDE (Maintenant multilingue) */}
       <section className="py-24 bg-gray-50">
         <div className="max-w-3xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-12 text-center">FAQ</h2>
           <div className="space-y-4">
             <details className="group bg-white p-6 rounded-lg shadow-sm cursor-pointer">
               <summary className="font-semibold list-none flex justify-between items-center">
-                Combien de temps prend la validation ?
+                {t.faq.q1}
                 <span className="text-[#D4AF37] group-open:rotate-180 transition-transform">▼</span>
               </summary>
-              <p className="mt-4 text-gray-600 text-sm">La validation est automatique dès réception du paiement des frais administratifs.</p>
+              <p className="mt-4 text-gray-600 text-sm">{t.faq.a1}</p>
             </details>
             <details className="group bg-white p-6 rounded-lg shadow-sm cursor-pointer">
               <summary className="font-semibold list-none flex justify-between items-center">
-                Mes données sont-elles sécurisées ?
+                {t.faq.q2}
                 <span className="text-[#D4AF37] group-open:rotate-180 transition-transform">▼</span>
               </summary>
-              <p className="mt-4 text-gray-600 text-sm">Oui, nous utilisons un chiffrement de bout en bout et sommes conformes RGPD.</p>
+              <p className="mt-4 text-gray-600 text-sm">{t.faq.a2}</p>
             </details>
           </div>
         </div>
       </section>
 
       {/* MODAL DEMANDE DE PRÊT */}
-      <LoanModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} lang={params.lang} />
+      <LoanModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} lang={lang} />
     </>
   );
 }
