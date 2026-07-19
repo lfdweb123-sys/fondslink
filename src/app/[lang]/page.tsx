@@ -4,14 +4,85 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { getTranslations, Locale } from '@/lib/i18n';
 import LoanModal from '@/components/LoanModal';
+
+// Icônes SVG réutilisables
+const Icons = {
+  ArrowRight: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+      <polyline points="12 5 19 12 12 19"></polyline>
+    </svg>
+  ),
+  Check: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+  ),
+  Shield: () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+    </svg>
+  ),
+  Clock: () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <polyline points="12 6 12 12 16 14"></polyline>
+    </svg>
+  ),
+  FileText: () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+      <polyline points="14 2 14 8 20 8"></polyline>
+      <line x1="16" y1="13" x2="8" y2="13"></line>
+      <line x1="16" y1="17" x2="8" y2="17"></line>
+      <polyline points="10 9 9 9 8 9"></polyline>
+    </svg>
+  ),
+  Users: () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+      <circle cx="9" cy="7" r="4"></circle>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+    </svg>
+  ),
+  CreditCard: () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+      <line x1="1" y1="10" x2="23" y2="10"></line>
+    </svg>
+  ),
+  Phone: () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+    </svg>
+  ),
+  Mail: () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+      <polyline points="22,6 12,13 2,6"></polyline>
+    </svg>
+  ),
+  Star: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+    </svg>
+  ),
+  ChevronDown: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+  ),
+};
 
 export default function HomePage({ params }: { params: Promise<{ lang: string }> }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
-  const [counters, setCounters] = useState({ clients: 0, loans: 0, experience: 0 });
+  const [counters, setCounters] = useState({ clients: 0, loans: 0, satisfaction: 0 });
   const statsRef = useRef(null);
   const isStatsInView = useInView(statsRef, { once: true });
   
@@ -22,7 +93,7 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
   useEffect(() => {
     if (isStatsInView) {
       const duration = 2000;
-      const steps = 50;
+      const steps = 60;
       const interval = duration / steps;
       
       let step = 0;
@@ -30,8 +101,8 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
         step++;
         setCounters({
           clients: Math.min(Math.floor((step / steps) * 15000), 15000),
-          loans: Math.min(Math.floor((step / steps) * 50000000), 50000000),
-          experience: Math.min(Math.floor((step / steps) * 25), 25)
+          loans: Math.min(Math.floor((step / steps) * 98), 98),
+          satisfaction: Math.min(Math.floor((step / steps) * 25), 25)
         });
         
         if (step >= steps) clearInterval(timer);
@@ -44,40 +115,52 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
   // Témoignages en rotation automatique
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % 3);
+      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
     }, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  return (
-    <>
-      {/* HERO SECTION - Nouveau design premium */}
-      <section className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-        {/* Particules animées en arrière-plan */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/20 to-transparent" />
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-2 h-2 bg-[#D4AF37] rounded-full"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [0, -30, 0],
-                opacity: [0, 1, 0],
-              }}
-              transition={{
-                duration: Math.random() * 3 + 2,
-                repeat: Infinity,
-                delay: Math.random() * 2,
-              }}
-            />
-          ))}
-        </div>
+  const testimonials = [
+    {
+      text: lang === 'nl' ? "Uitstekende service! Mijn lening werd in minder dan 24 uur goedgekeurd. Het proces was eenvoudig en het team zeer professioneel." : 
+            lang === 'en' ? "Excellent service! My loan was approved in less than 24 hours. The process was simple and the team very professional." :
+            "¡Servicio excelente! Mi préstamo fue aprobado en menos de 24 horas. El proceso fue simple y el equipo muy profesional.",
+      name: lang === 'nl' ? 'Tevreden klant' : lang === 'en' ? 'Satisfied customer' : 'Cliente satisfecho',
+      role: lang === 'nl' ? 'Ondernemer' : lang === 'en' ? 'Entrepreneur' : 'Emprendedor'
+    },
+    {
+      text: lang === 'nl' ? "Een snelle en efficiënte financieringsoplossing. Ik beveel het ten zeerste aan bij alle ondernemers." :
+            lang === 'en' ? "A fast and efficient financing solution. I highly recommend it to all entrepreneurs." :
+            "Una solución de financiación rápida y eficiente. Lo recomiendo encarecidamente a todos los emprendedores.",
+      name: lang === 'nl' ? 'Tevreden klant' : lang === 'en' ? 'Satisfied customer' : 'Cliente satisfecho',
+      role: lang === 'nl' ? 'ZZP\'er' : lang === 'en' ? 'Freelancer' : 'Freelance'
+    },
+    {
+      text: lang === 'nl' ? "Team dat luistert en zeer responsief is. Het proces is transparant en de voorwaarden zijn duidelijk." :
+            lang === 'en' ? "A team that listens and is very responsive. The process is transparent and the conditions are clear." :
+            "Un equipo que escucha y es muy receptivo. El proceso es transparente y las condiciones son claras.",
+      name: lang === 'nl' ? 'Tevreden klant' : lang === 'en' ? 'Satisfied customer' : 'Cliente satisfecho',
+      role: lang === 'nl' ? 'Directeur MKB' : lang === 'en' ? 'SME Director' : 'Director PYME'
+    }
+  ];
 
-        <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
+  return (
+    <div className="bg-white">
+      {/* HERO SECTION */}
+      <section className="relative min-h-screen flex items-center overflow-hidden bg-white">
+        {/* Fond géométrique subtil */}
+        <div className="absolute inset-0 z-0 opacity-5">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, #000 1px, transparent 0)`,
+            backgroundSize: '40px 40px'
+          }} />
+        </div>
+        
+        {/* Éléments décoratifs */}
+        <div className="absolute top-20 right-0 w-96 h-96 bg-[#D4AF37]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 left-0 w-96 h-96 bg-gray-900/5 rounded-full blur-3xl" />
+
+        <div className="max-w-7xl mx-auto px-6 relative z-10 w-full py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
@@ -88,24 +171,25 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
-                className="inline-block px-4 py-2 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-full mb-6"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#D4AF37]/5 border border-[#D4AF37]/20 rounded-full mb-8"
               >
-                <span className="text-[#D4AF37] text-sm font-medium">⚡ Financement rapide en 24h</span>
+                <span className="w-2 h-2 bg-[#D4AF37] rounded-full animate-pulse" />
+                <span className="text-gray-700 text-sm font-medium">
+                  {lang === 'nl' ? 'Snelle financiering binnen 24u' : 
+                   lang === 'en' ? 'Fast financing within 24h' : 
+                   'Financiación rápida en 24h'}
+                </span>
               </motion.div>
               
-              <h1 className="text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-                <span className="text-white">{t.hero.title.split(' ').slice(0, 2).join(' ')}</span>
-                <br />
-                <span className="bg-gradient-to-r from-[#D4AF37] to-[#FFD700] bg-clip-text text-transparent">
-                  {t.hero.title.split(' ').slice(2).join(' ')}
-                </span>
+              <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 leading-tight text-gray-900">
+                {t.hero.title}
               </h1>
               
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
-                className="text-xl text-gray-300 mb-8 leading-relaxed"
+                className="text-xl text-gray-600 mb-10 leading-relaxed"
               >
                 {t.hero.subtitle}
               </motion.p>
@@ -117,26 +201,27 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
                 className="flex flex-wrap gap-4"
               >
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setIsModalOpen(true)}
-                  className="group relative px-8 py-4 bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black font-semibold rounded-xl overflow-hidden shadow-2xl shadow-[#D4AF37]/30"
+                  className="group px-8 py-4 bg-[#D4AF37] text-white font-semibold rounded-lg hover:bg-[#C4A02E] transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
                 >
-                  <span className="relative z-10">{t.hero.cta}</span>
-                  <motion.div
-                    className="absolute inset-0 bg-white"
-                    initial={{ x: '-100%' }}
-                    whileHover={{ x: 0 }}
-                    transition={{ duration: 0.3 }}
-                  />
+                  {t.hero.cta}
+                  <span className="group-hover:translate-x-1 transition-transform">
+                    <Icons.ArrowRight />
+                  </span>
                 </motion.button>
                 
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  className="px-8 py-4 border-2 border-white/20 text-white font-semibold rounded-xl backdrop-blur-sm hover:border-[#D4AF37] transition-colors"
-                >
-                  📞 Parler à un expert
-                </motion.button>
+                <Link href={`/${lang}/contact`}>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="px-8 py-4 border-2 border-gray-200 text-gray-900 font-semibold rounded-lg hover:border-[#D4AF37] transition-all flex items-center gap-2"
+                  >
+                    <Icons.Phone />
+                    {lang === 'nl' ? 'Contact opnemen' : lang === 'en' ? 'Contact us' : 'Contactar'}
+                  </motion.button>
+                </Link>
               </motion.div>
               
               {/* Social Proof */}
@@ -144,50 +229,67 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.2 }}
-                className="mt-8 flex items-center gap-4"
+                className="mt-12 flex items-center gap-6 p-4 bg-gray-50 rounded-xl border border-gray-100"
               >
-                <div className="flex -space-x-3">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="w-10 h-10 rounded-full border-2 border-gray-800 bg-gradient-to-br from-gray-400 to-gray-600" />
-                  ))}
+                <div className="flex items-center gap-2">
+                  <Icons.Users />
+                  <div>
+                    <div className="text-2xl font-bold text-gray-900">+15.000</div>
+                    <div className="text-sm text-gray-600">
+                      {lang === 'nl' ? 'tevreden klanten' : lang === 'en' ? 'satisfied customers' : 'clientes satisfechos'}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-[#D4AF37] font-bold text-lg">+15,000 clients</div>
-                  <div className="text-gray-400 text-sm">nous font confiance</div>
+                <div className="w-px h-12 bg-gray-200" />
+                <div className="flex items-center gap-2">
+                  <Icons.Star />
+                  <div>
+                    <div className="text-2xl font-bold text-gray-900">4.9/5</div>
+                    <div className="text-sm text-gray-600">
+                      {lang === 'nl' ? 'klantbeoordeling' : lang === 'en' ? 'customer rating' : 'valoración clientes'}
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             </motion.div>
             
-            {/* Image Héro avec animation */}
+            {/* Image Héro avec animations */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
               className="relative hidden lg:block"
             >
               <motion.div
-                animate={{ y: [0, -20, 0] }}
+                animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 className="relative"
               >
-                <div className="relative w-full h-[600px] rounded-3xl overflow-hidden shadow-2xl border border-[#D4AF37]/20">
+                <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-gray-100">
                   <Image
                     src="/images/hero-signing.jpg"
-                    alt="Service financier premium"
+                    alt="Professionele financiering"
                     fill
                     className="object-cover"
                     priority
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent" />
                   
                   {/* Badge flottant */}
                   <motion.div
                     animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                    className="absolute top-8 right-8 bg-white/10 backdrop-blur-lg rounded-2xl p-4 border border-white/20"
+                    transition={{ duration: 3, repeat: Infinity, delay: 1 }}
+                    className="absolute top-8 right-8 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-gray-100"
                   >
-                    <div className="text-[#D4AF37] font-bold text-2xl">98%</div>
-                    <div className="text-white text-sm">Taux de satisfaction</div>
+                    <div className="flex items-center gap-2">
+                      <Icons.Shield />
+                      <div>
+                        <div className="text-[#D4AF37] font-bold text-lg">98%</div>
+                        <div className="text-gray-600 text-xs">
+                          {lang === 'nl' ? 'Goedgekeurd' : lang === 'en' ? 'Approved' : 'Aprobado'}
+                        </div>
+                      </div>
+                    </div>
                   </motion.div>
                 </div>
               </motion.div>
@@ -201,24 +303,24 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
           transition={{ duration: 2, repeat: Infinity }}
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
         >
-          <div className="w-6 h-10 border-2 border-[#D4AF37]/50 rounded-full flex justify-center">
+          <div className="w-6 h-10 border-2 border-gray-300 rounded-full flex justify-center">
             <motion.div
               animate={{ y: [0, 15, 0] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="w-1 h-3 bg-[#D4AF37] rounded-full mt-2"
+              className="w-1.5 h-3 bg-[#D4AF37] rounded-full mt-2"
             />
           </div>
         </motion.div>
       </section>
 
       {/* STATS SECTION avec compteurs animés */}
-      <section ref={statsRef} className="py-16 bg-gray-900 border-y border-gray-800">
+      <section ref={statsRef} className="py-20 bg-gray-900">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-12">
             {[
-              { value: counters.clients, label: 'Clients satisfaits', suffix: '+', icon: '👥' },
-              { value: `${(counters.loans / 1000000).toFixed(1)}`, label: 'Millions financés', suffix: 'M€', icon: '💰' },
-              { value: counters.experience, label: "Années d'expérience", suffix: '+', icon: '🎯' }
+              { value: counters.clients, suffix: '+', label: lang === 'nl' ? 'Tevreden klanten' : lang === 'en' ? 'Satisfied customers' : 'Clientes satisfechos', icon: <Icons.Users /> },
+              { value: counters.loans, suffix: '%', label: lang === 'nl' ? 'Goedkeuringspercentage' : lang === 'en' ? 'Approval rate' : 'Tasa de aprobación', icon: <Icons.Check /> },
+              { value: counters.satisfaction, suffix: '+', label: lang === 'nl' ? 'Jaar ervaring' : lang === 'en' ? 'Years of experience' : 'Años de experiencia', icon: <Icons.Clock /> }
             ].map((stat, i) => (
               <motion.div
                 key={i}
@@ -227,18 +329,20 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
                 transition={{ delay: i * 0.2 }}
                 className="text-center"
               >
-                <div className="text-4xl mb-2">{stat.icon}</div>
-                <div className="text-5xl font-bold text-white mb-2">
-                  {stat.value}{stat.suffix}
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-xl mb-4 text-white">
+                  {stat.icon}
                 </div>
-                <div className="text-gray-400">{stat.label}</div>
+                <div className="text-5xl font-bold text-white mb-2">
+                  {stat.value.toLocaleString()}{stat.suffix}
+                </div>
+                <div className="text-gray-400 text-lg">{stat.label}</div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* AVANTAGES - Design amélioré avec animations au scroll */}
+      {/* AVANTAGES - Design épuré */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
@@ -246,34 +350,35 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
             whileInView={{ opacity: 1, y: 0 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold mb-4">{t.benefits.title}</h2>
-            <p className="text-gray-600 text-lg">Pourquoi choisir notre service de financement</p>
+            <h2 className="text-4xl font-bold mb-4 text-gray-900">{t.benefits.title}</h2>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              {lang === 'nl' ? 'Ontdek waarom duizenden klanten voor onze financieringsoplossingen kiezen' :
+               lang === 'en' ? 'Discover why thousands of customers choose our financing solutions' :
+               'Descubra por qué miles de clientes eligen nuestras soluciones de financiación'}
+            </p>
           </motion.div>
           
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {t.benefits.items.map((item, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 50 }}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.2 }}
-                whileHover={{ y: -10 }}
-                className="group relative bg-white p-8 rounded-2xl border border-gray-200 hover:border-[#D4AF37] transition-all duration-300 hover:shadow-2xl"
+                transition={{ delay: i * 0.1 }}
+                whileHover={{ y: -5 }}
+                className="group bg-white p-8 rounded-xl border border-gray-200 hover:border-[#D4AF37] hover:shadow-xl transition-all duration-300"
               >
-                <motion.div
-                  whileHover={{ rotate: 360 }}
-                  transition={{ duration: 0.6 }}
-                  className="w-16 h-16 bg-gradient-to-br from-[#D4AF37] to-[#FFD700] rounded-2xl flex items-center justify-center mb-6 text-2xl"
-                >
-                  {['🚀', '💎', '🛡️', '⚡', '💡', '🎯'][i]}
-                </motion.div>
-                <h3 className="text-xl font-bold mb-3 group-hover:text-[#D4AF37] transition-colors">
-                  {item}
-                </h3>
-                <p className="text-gray-600">
-                  {i === 0 ? 'Obtenez votre financement en un temps record grâce à notre processus optimisé.' :
-                   i === 1 ? 'Des conditions avantageuses et transparentes adaptées à votre situation.' :
-                   'Vos données sont protégées avec les plus hauts standards de sécurité.'}
+                <div className="w-14 h-14 bg-gray-50 group-hover:bg-[#D4AF37]/10 rounded-lg flex items-center justify-center mb-6 transition-colors">
+                  <div className="text-[#D4AF37]">
+                    {[<Icons.Clock key="clock" />, <Icons.FileText key="file" />, <Icons.Check key="check" />, 
+                      <Icons.Shield key="shield" />, <Icons.CreditCard key="card" />, <Icons.Users key="users" />][i]}
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">{item}</h3>
+                <p className="text-gray-600 text-sm">
+                  {lang === 'nl' ? 'Professionele service met gegarandeerde kwaliteit en veiligheid.' :
+                   lang === 'en' ? 'Professional service with guaranteed quality and security.' :
+                   'Servicio profesional con calidad y seguridad garantizadas.'}
                 </p>
               </motion.div>
             ))}
@@ -281,50 +386,66 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
         </div>
       </section>
 
-      {/* PROCESSUS - Timeline animée */}
-      <section className="py-24 bg-gradient-to-br from-black to-gray-900 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-5" />
-        
-        <div className="max-w-7xl mx-auto px-6 relative">
+      {/* COMMENT ÇA MARCHE - Timeline */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
           <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-white mb-4">{t.steps.title}</h2>
-            <p className="text-gray-400">Un processus simple et transparent en 4 étapes</p>
+            <h2 className="text-4xl font-bold mb-4 text-gray-900">{t.steps.title}</h2>
+            <p className="text-gray-600 text-lg">
+              {lang === 'nl' ? 'Een eenvoudig proces in 4 stappen' :
+               lang === 'en' ? 'A simple process in 4 steps' :
+               'Un proceso simple en 4 pasos'}
+            </p>
           </motion.div>
           
           <div className="relative">
-            {/* Ligne de progression */}
-            <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-[#D4AF37]/0 via-[#D4AF37] to-[#D4AF37]/0" />
+            {/* Ligne de progression pour desktop */}
+            <div className="hidden lg:block absolute top-12 left-[12.5%] right-[12.5%] h-0.5 bg-gray-200">
+              <motion.div 
+                className="h-full bg-[#D4AF37]"
+                initial={{ width: 0 }}
+                whileInView={{ width: '100%' }}
+                transition={{ duration: 1.5, ease: "easeInOut" }}
+              />
+            </div>
             
             <div className="grid md:grid-cols-4 gap-8">
               {[t.steps.s1, t.steps.s2, t.steps.s3, t.steps.s4].map((step, i) => (
                 <motion.div
                   key={i}
-                  initial={{ opacity: 0, y: 50 }}
+                  initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.2 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="relative"
+                  className="relative text-center"
                 >
-                  <div className="text-center">
-                    <motion.div
-                      whileHover={{ rotate: 360 }}
-                      transition={{ duration: 0.5 }}
-                      className="w-20 h-20 bg-gradient-to-br from-[#D4AF37] to-[#FFD700] rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold text-black shadow-lg shadow-[#D4AF37]/30"
-                    >
-                      {i + 1}
-                    </motion.div>
-                    <h3 className="text-xl font-bold text-white mb-3">{step}</h3>
-                    <p className="text-gray-400">
-                      {i === 0 ? 'Remplissez le formulaire en quelques clics' :
-                       i === 1 ? 'Nous étudions votre dossier rapidement' :
-                       i === 2 ? 'Recevez une proposition adaptée' :
-                       'Les fonds sont disponibles sur votre compte'}
-                    </p>
-                  </div>
+                  <motion.div
+                    whileHover={{ scale: 1.1, rotate: 360 }}
+                    transition={{ duration: 0.6 }}
+                    className="w-24 h-24 bg-white border-2 border-[#D4AF37] rounded-full flex items-center justify-center mx-auto mb-6 relative z-10 shadow-lg"
+                  >
+                    <span className="text-2xl font-bold text-[#D4AF37]">{i + 1}</span>
+                  </motion.div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{step}</h3>
+                  <p className="text-gray-600 text-sm">
+                    {[
+                      lang === 'nl' ? 'Vul het online formulier in enkele minuten in' :
+                      lang === 'en' ? 'Fill out the online form in minutes' :
+                      'Complete el formulario en línea en minutos',
+                      lang === 'nl' ? 'Ontvang en onderteken digitaal uw contract' :
+                      lang === 'en' ? 'Receive and digitally sign your contract' :
+                      'Reciba y firme digitalmente su contrato',
+                      lang === 'nl' ? 'Veilige online betaling van administratiekosten' :
+                      lang === 'en' ? 'Secure online payment of administrative fees' :
+                      'Pago seguro en línea de tasas administrativas',
+                      lang === 'nl' ? 'Uw dossier wordt automatisch gevalideerd' :
+                      lang === 'en' ? 'Your file is automatically validated' :
+                      'Su expediente se valida automáticamente'
+                    ][i]}
+                  </p>
                 </motion.div>
               ))}
             </div>
@@ -332,65 +453,60 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
         </div>
       </section>
 
-      {/* TÉMOIGNAGES - Carousel */}
+      {/* TÉMOIGNAGES - Carousel élégant */}
       <section className="py-24 bg-white">
         <div className="max-w-4xl mx-auto px-6">
-          <motion.h2
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            className="text-4xl font-bold text-center mb-16"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            className="text-center mb-16"
           >
-            Ce que disent nos clients
-          </motion.h2>
+            <h2 className="text-4xl font-bold mb-4 text-gray-900">
+              {lang === 'nl' ? 'Wat onze klanten zeggen' : lang === 'en' ? 'What our customers say' : 'Lo que dicen nuestros clientes'}
+            </h2>
+          </motion.div>
           
           <div className="relative">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTestimonial}
-                initial={{ opacity: 0, x: 100 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -100 }}
-                transition={{ duration: 0.5 }}
-                className="bg-gray-50 p-8 md:p-12 rounded-3xl border border-gray-100"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="bg-gray-50 p-10 md:p-14 rounded-2xl border border-gray-100"
               >
-                <div className="flex items-center mb-6">
+                <div className="flex mb-6">
                   {[...Array(5)].map((_, i) => (
-                    <motion.span
-                      key={i}
-                      initial={{ opacity: 0, scale: 0 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.1 }}
-                      className="text-2xl"
-                    >
-                      ⭐
-                    </motion.span>
+                    <span key={i} className="text-[#D4AF37]">
+                      <Icons.Star />
+                    </span>
                   ))}
                 </div>
-                <p className="text-xl text-gray-700 mb-6">
-                  {[
-                    "Service exceptionnel ! J'ai obtenu mon prêt en moins de 24h. Processus simple et équipe très professionnelle.",
-                    "Une solution de financement rapide et efficace. Je recommande vivement à tous les entrepreneurs.",
-                    "Équipe à l'écoute et très réactive. Le processus est transparent et les conditions sont claires."
-                  ][activeTestimonial]}
-                </p>
+                <blockquote className="text-xl text-gray-700 mb-8 leading-relaxed">
+                  &ldquo;{testimonials[activeTestimonial].text}&rdquo;
+                </blockquote>
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#D4AF37] to-[#FFD700] rounded-full" />
+                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                    <Icons.Users />
+                  </div>
                   <div>
-                    <div className="font-bold">Client satisfait</div>
-                    <div className="text-gray-500 text-sm">Entrepreneur</div>
+                    <div className="font-semibold text-gray-900">{testimonials[activeTestimonial].name}</div>
+                    <div className="text-gray-500 text-sm">{testimonials[activeTestimonial].role}</div>
                   </div>
                 </div>
               </motion.div>
             </AnimatePresence>
             
-            <div className="flex justify-center gap-2 mt-8">
-              {[0, 1, 2].map((i) => (
+            <div className="flex justify-center gap-3 mt-8">
+              {testimonials.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveTestimonial(i)}
-                  className={`w-3 h-3 rounded-full transition-all ${
-                    activeTestimonial === i ? 'bg-[#D4AF37] w-8' : 'bg-gray-300'
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    activeTestimonial === i ? 'bg-[#D4AF37] w-8' : 'bg-gray-300 w-2 hover:bg-gray-400'
                   }`}
+                  aria-label={`Témoignage ${i + 1}`}
                 />
               ))}
             </div>
@@ -398,135 +514,98 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
         </div>
       </section>
 
-      {/* CTA SECTION - Design premium */}
-      <section className="relative py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37] to-[#FFD700] opacity-90" />
-        <div className="absolute inset-0 bg-[url('/images/pattern.svg')] opacity-10" />
+      {/* CTA SECTION */}
+      <section className="py-24 bg-gray-900 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)`,
+            backgroundSize: '30px 30px'
+          }} />
+        </div>
         
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-black mb-6">
-              Prêt à concrétiser vos projets ?
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              {lang === 'nl' ? 'Klaar om uw project te realiseren?' :
+               lang === 'en' ? 'Ready to make your project happen?' :
+               '¿Listo para hacer realidad su proyecto?'}
             </h2>
-            <p className="text-xl text-black/80 mb-8 max-w-2xl mx-auto">
-              Rejoignez les milliers de clients qui nous font confiance pour leur financement
+            <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
+              {lang === 'nl' ? 'Sluit u aan bij duizenden tevreden klanten die ons vertrouwen voor hun financiering' :
+               lang === 'en' ? 'Join thousands of satisfied customers who trust us for their financing' :
+               'Únase a miles de clientes satisfechos que confían en nosotros para su financiación'}
             </p>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsModalOpen(true)}
-              className="px-10 py-4 bg-black text-[#D4AF37] font-bold rounded-xl hover:bg-gray-900 transition-colors shadow-2xl"
+              className="px-10 py-4 bg-[#D4AF37] text-white font-bold rounded-lg hover:bg-[#C4A02E] transition-colors shadow-xl flex items-center gap-2 mx-auto"
             >
-              Démarrer ma demande maintenant →
+              {lang === 'nl' ? 'Start mijn aanvraag' : lang === 'en' ? 'Start my application' : 'Iniciar mi solicitud'}
+              <Icons.ArrowRight />
             </motion.button>
           </motion.div>
         </div>
       </section>
 
-      {/* PARTENAIRES */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            className="text-center mb-8"
-          >
-            <p className="text-gray-500 uppercase text-sm tracking-wider">Ils nous font confiance</p>
-          </motion.div>
-          <div className="flex flex-wrap justify-center items-center gap-12 opacity-50">
-            {['BNP Paribas', 'AXA', 'Allianz', 'Crédit Mutuel', 'Groupama'].map((partner, i) => (
-              <motion.div
-                key={i}
-                whileHover={{ opacity: 1, scale: 1.1 }}
-                className="text-2xl font-bold text-gray-400"
-              >
-                {partner}
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ RAPIDE */}
+      {/* FAQ */}
       <section className="py-24 bg-white">
         <div className="max-w-3xl mx-auto px-6">
           <motion.h2
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            className="text-4xl font-bold mb-12 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            className="text-4xl font-bold mb-12 text-center text-gray-900"
           >
-            Questions fréquentes
+            FAQ
           </motion.h2>
           <div className="space-y-4">
             {[
               { q: t.faq.q1, a: t.faq.a1 },
               { q: t.faq.q2, a: t.faq.a2 },
-              { q: "Quels sont les taux d'intérêt ?", a: "Nos taux sont compétitifs et personnalisés selon votre profil. Contactez-nous pour une simulation gratuite." },
-              { q: "Puis-je rembourser par anticipation ?", a: "Oui, le remboursement anticipé est possible sans pénalités. Nous encourageons la flexibilité financière." }
+              { 
+                q: lang === 'nl' ? 'Kan ik vervroegd aflossen?' : 
+                   lang === 'en' ? 'Can I repay early?' : 
+                   '¿Puedo amortizar anticipadamente?',
+                a: lang === 'nl' ? 'Ja, vervroegd aflossen is mogelijk zonder extra kosten. Wij moedigen financiële flexibiliteit aan.' :
+                   lang === 'en' ? 'Yes, early repayment is possible without additional fees. We encourage financial flexibility.' :
+                   'Sí, la amortización anticipada es posible sin costes adicionales. Fomentamos la flexibilidad financiera.'
+              },
+              { 
+                q: lang === 'nl' ? 'Welke documenten heb ik nodig?' :
+                   lang === 'en' ? 'What documents do I need?' :
+                   '¿Qué documentos necesito?',
+                a: lang === 'nl' ? 'U heeft een geldig identiteitsbewijs, recente loonstrook en bankafschrift nodig.' :
+                   lang === 'en' ? 'You need a valid ID, recent pay stub and bank statement.' :
+                   'Necesita un documento de identidad válido, nómina reciente y extracto bancario.'
+              }
             ].map((faq, i) => (
               <motion.details
                 key={i}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
                 className="group bg-gray-50 p-6 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors"
               >
-                <summary className="font-semibold text-lg list-none flex justify-between items-center">
+                <summary className="font-semibold text-gray-900 list-none flex justify-between items-center gap-4">
                   {faq.q}
-                  <motion.span
-                    className="text-[#D4AF37] text-2xl"
-                    whileTap={{ rotate: 180 }}
-                  >
-                    +
-                  </motion.span>
+                  <span className="text-[#D4AF37] flex-shrink-0 group-open:rotate-180 transition-transform duration-300">
+                    <Icons.ChevronDown />
+                  </span>
                 </summary>
-                <motion.p
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="mt-4 text-gray-600"
-                >
+                <p className="mt-4 text-gray-600 leading-relaxed">
                   {faq.a}
-                </motion.p>
+                </p>
               </motion.details>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FOOTER CTA */}
-      <section className="py-16 bg-black text-white">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-          >
-            <h3 className="text-2xl font-bold mb-4">Une question ? Contactez-nous</h3>
-            <p className="text-gray-400 mb-8">Notre équipe est disponible 24/7 pour vous accompagner</p>
-            <div className="flex justify-center gap-8">
-              <motion.a
-                href="tel:+33123456789"
-                whileHover={{ scale: 1.1 }}
-                className="flex items-center gap-2 text-[#D4AF37]"
-              >
-                📞 01 23 45 67 89
-              </motion.a>
-              <motion.a
-                href="mailto:contact@financement.fr"
-                whileHover={{ scale: 1.1 }}
-                className="flex items-center gap-2 text-[#D4AF37]"
-              >
-                ✉️ contact@financement.fr
-              </motion.a>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
       {/* MODAL DEMANDE DE PRÊT */}
       <LoanModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} lang={lang} />
-    </>
+    </div>
   );
 }
