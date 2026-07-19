@@ -1,7 +1,7 @@
 // src/app/[lang]/layout.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, use } from 'react';
 import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import Link from 'next/link';
@@ -18,7 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
   params: Promise<{ lang: string }>;
 }) {
-  const { lang } = params as any;
+  // ⚠️ CORRECTION ICI : Utiliser use() pour résoudre la Promise
+  const { lang } = use(params);
   const t = getTranslations(lang);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -29,20 +30,23 @@ export default function RootLayout({
     lang === 'en' ? 'contactus@fondslink.com' :
     'contacto@fondslink.com';
 
-  // Fonction pour changer de langue en gardant le même chemin
+  // Fonction pour changer de langue
   const getLocalizedPath = (newLang: string) => {
-    // pathname ressemble à /nl/contact ou /nl ou /en
-    // On enlève le premier segment (la langue actuelle)
-    const segments = pathname.split('/').filter(Boolean); // ['nl', 'contact'] ou ['nl']
+    // Enlever le préfixe de langue du pathname
+    let path = pathname;
     
-    // Si le premier segment est une langue valide, on le retire
-    if (locales.includes(segments[0] as any)) {
-      segments.shift(); // retire la langue actuelle
+    // Retire /nl, /en, ou /es du début
+    for (const locale of locales) {
+      if (path.startsWith(`/${locale}`)) {
+        path = path.replace(`/${locale}`, '') || '/';
+        break;
+      }
     }
     
-    // Reconstruction du chemin avec la nouvelle langue
-    const pathWithoutLang = segments.length > 0 ? `/${segments.join('/')}` : '';
-    return `/${newLang}${pathWithoutLang}`;
+    // Si le chemin est vide, on va à la racine
+    if (path === '') path = '/';
+    
+    return `/${newLang}${path === '/' ? '' : path}`;
   };
 
   return (
@@ -57,7 +61,7 @@ export default function RootLayout({
                 FONDS<span className="text-[#D4AF37]">LINK</span>
               </Link>
               
-              {/* Navigation Desktop - Liens centrés */}
+              {/* Navigation Desktop */}
               <nav className="hidden md:flex items-center justify-center flex-1 gap-8">
                 <Link 
                   href={`/${lang}`} 
@@ -77,7 +81,7 @@ export default function RootLayout({
                 </Link>
               </nav>
 
-              {/* Partie droite : Langues + Bouton Apply */}
+              {/* Partie droite */}
               <div className="hidden md:flex items-center gap-6 flex-shrink-0">
                 {/* Sélecteur de langue */}
                 <div className="flex items-center gap-2 text-xs">
@@ -96,7 +100,7 @@ export default function RootLayout({
                   ))}
                 </div>
 
-                {/* Bouton Apply - Noir, seul à droite */}
+                {/* Bouton Apply */}
                 <button 
                   onClick={() => setIsModalOpen(true)}
                   className="btn-primary text-sm cursor-pointer whitespace-nowrap"
@@ -105,11 +109,10 @@ export default function RootLayout({
                 </button>
               </div>
 
-              {/* Bouton Menu Mobile */}
+              {/* Menu Mobile */}
               <button 
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                aria-label="Menu"
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   {isMobileMenuOpen ? (
@@ -129,7 +132,7 @@ export default function RootLayout({
             </div>
           </div>
 
-          {/* Menu Mobile */}
+          {/* Menu Mobile Dropdown */}
           {isMobileMenuOpen && (
             <div className="md:hidden border-t border-gray-100 bg-white">
               <div className="max-w-7xl mx-auto px-6 py-4 space-y-4">
