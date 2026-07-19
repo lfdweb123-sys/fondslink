@@ -29,6 +29,74 @@ export async function generateMetadata({
   };
 }
 
+// Composant client pour le header avec bouton interactif
+'use client';
+import { useState } from 'react';
+import LoanModal from '@/components/LoanModal';
+
+function HeaderClient({ lang, t }: { lang: string; t: any }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const contactEmail = 
+    lang === 'nl' ? 'contact@fondslink.com' :
+    lang === 'en' ? 'contactus@fondslink.com' :
+    'contacto@fondslink.com';
+
+  return (
+    <>
+      <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 z-50">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <Link href={`/${lang}`} className="text-2xl font-bold tracking-tight">
+            FONDS<span className="text-[#D4AF37]">LINK</span>
+          </Link>
+          
+          <nav className="hidden md:flex items-center gap-8">
+            <Link href={`/${lang}`} className="text-sm font-medium hover:text-[#D4AF37] transition-colors">
+              {t.nav.home}
+            </Link>
+            <Link href={`/${lang}/contact`} className="text-sm font-medium hover:text-[#D4AF37] transition-colors">
+              {t.nav.contact}
+            </Link>
+            
+            {/* Sélecteur de langue */}
+            <div className="flex gap-2 text-xs border-l pl-6 ml-2">
+              {locales.map((locale) => (
+                <Link 
+                  key={locale} 
+                  href={`/${locale}`}
+                  className={lang === locale ? 'font-bold text-[#D4AF37]' : 'text-gray-400 hover:text-gray-600 transition-colors'}
+                >
+                  {locale.toUpperCase()}
+                </Link>
+              ))}
+            </div>
+
+            {/* Bouton Apply - Ouvre le modal de demande de prêt */}
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="btn-primary text-sm cursor-pointer"
+            >
+              {t.nav.apply}
+            </button>
+          </nav>
+
+          {/* Menu mobile burger */}
+          <button className="md:hidden p-2">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      {/* Modal de demande de prêt */}
+      <LoanModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} lang={lang as Locale} />
+    </>
+  );
+}
+
 export default async function RootLayout({
   children,
   params,
@@ -47,49 +115,7 @@ export default async function RootLayout({
   return (
     <html lang={lang}>
       <body className={`${inter.className} bg-white text-black antialiased`}>
-        {/* HEADER */}
-        <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 z-50">
-          <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <Link href={`/${lang}`} className="text-2xl font-bold tracking-tight">
-              FONDS<span className="text-[#D4AF37]">LINK</span>
-            </Link>
-            
-            <nav className="hidden md:flex items-center gap-8">
-              <Link href={`/${lang}`} className="text-sm font-medium hover:text-[#D4AF37] transition-colors">
-                {t.nav.home}
-              </Link>
-              <Link href={`/${lang}/contact`} className="text-sm font-medium hover:text-[#D4AF37] transition-colors">
-                {t.nav.contact}
-              </Link>
-              
-              {/* Sélecteur de langue */}
-              <div className="flex gap-2 text-xs border-l pl-6 ml-2">
-                {locales.map((locale) => (
-                  <Link 
-                    key={locale} 
-                    href={`/${locale}`}
-                    className={lang === locale ? 'font-bold text-[#D4AF37]' : 'text-gray-400 hover:text-gray-600 transition-colors'}
-                  >
-                    {locale.toUpperCase()}
-                  </Link>
-                ))}
-              </div>
-
-              <Link href={`/${lang}/contact?openLoan=true`} className="btn-primary text-sm">
-                {t.nav.apply}
-              </Link>
-            </nav>
-
-            {/* Menu mobile burger - optionnel */}
-            <button className="md:hidden p-2">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-        </header>
+        <HeaderClient lang={lang} t={t} />
 
         {/* MAIN CONTENT */}
         <main className="pt-20 min-h-screen">
@@ -140,7 +166,6 @@ export default async function RootLayout({
               </div>
             </div>
             
-            {/* Liens rapides en bas */}
             <div className="border-t border-gray-800 mt-8 pt-8 flex flex-wrap justify-between items-center">
               <div className="flex gap-6 text-sm text-gray-400">
                 <Link href={`/${lang}`} className="hover:text-white transition-colors">
