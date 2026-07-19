@@ -1,10 +1,9 @@
 // src/app/[lang]/contact/page.tsx
 'use client';
-import { useState } from 'react';
+import { useState, use } from 'react';
 import { motion } from 'framer-motion';
-import { getTranslations, Locale } from '@/lib/i18n';
+import { getTranslations, type Locale } from '@/lib/i18n';
 
-// Icônes SVG
 const Icons = {
   Phone: () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -49,36 +48,22 @@ const Icons = {
 };
 
 export default function ContactPage({ params }: { params: Promise<{ lang: string }> }) {
-  const lang = (params as any).lang as Locale;
-  const t = getTranslations(lang);
+  const { lang } = use(params);
+  const t = getTranslations(lang as Locale);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: '',
-    message: ''
-  });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus('loading');
-    
     const formDataToSend = new FormData(e.currentTarget);
     const data = Object.fromEntries(formDataToSend.entries());
-
     try {
-      await fetch('/api/brevo/contact', {
-        method: 'POST',
-        body: JSON.stringify({ ...data, lang })
-      });
+      await fetch('/api/brevo/contact', { method: 'POST', body: JSON.stringify({ ...data, lang }) });
       setStatus('success');
     } catch (err) {
       console.error(err);
@@ -86,37 +71,24 @@ export default function ContactPage({ params }: { params: Promise<{ lang: string
     }
   };
 
+  const contactItems = [
+    { icon: <Icons.Phone />, title: t.contact.phoneLabel, value: t.contact.phoneValue, href: 'tel:+31201234567' },
+    { icon: <Icons.Mail />, title: t.contact.emailLabel, value: t.contact.emailValue, href: `mailto:${t.contact.emailValue}` },
+    { icon: <Icons.MapPin />, title: t.contact.addressLabel, value: t.contact.addressValue, href: '#' },
+    { icon: <Icons.Clock />, title: t.contact.availabilityLabel, value: t.contact.availabilityValue, href: '#' },
+  ];
+
   if (status === 'success') {
     return (
       <div className="min-h-[80vh] flex items-center justify-center bg-white px-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="bg-white p-12 rounded-2xl shadow-2xl border border-gray-100 text-center max-w-md w-full"
-        >
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6"
-          >
-            <div className="text-green-500">
-              <Icons.Check />
-            </div>
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="bg-white p-12 rounded-2xl shadow-2xl border border-gray-100 text-center max-w-md w-full">
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring", stiffness: 200 }} className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="text-green-500"><Icons.Check /></div>
           </motion.div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">{t.contact.sentTitle}</h2>
           <p className="text-gray-600 mb-8">{t.contact.sentDesc}</p>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => {
-              setStatus('idle');
-              setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-            }}
-            className="text-[#D4AF37] font-semibold hover:text-[#C4A02E] transition-colors"
-          >
-            {lang === 'nl' ? 'Nieuw bericht versturen' : lang === 'en' ? 'Send new message' : 'Enviar nuevo mensaje'}
+          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setStatus('idle'); setFormData({ name: '', email: '', phone: '', subject: '', message: '' }); }} className="text-[#D4AF37] font-semibold hover:text-[#C4A02E] transition-colors">
+            {t.contact.newMessage}
           </motion.button>
         </motion.div>
       </div>
@@ -127,207 +99,67 @@ export default function ContactPage({ params }: { params: Promise<{ lang: string
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-6 py-20">
         <div className="grid lg:grid-cols-5 gap-16">
-          {/* Informations de contact */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            className="lg:col-span-2"
-          >
-            <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              {t.nav.contact}
-            </h1>
-            <p className="text-lg text-gray-600 mb-12 leading-relaxed">
-              {lang === 'nl' ? 'Heeft u vragen? Ons team staat klaar om u te helpen. Vul het formulier in of neem direct contact met ons op.' :
-               lang === 'en' ? 'Do you have questions? Our team is ready to help you. Fill out the form or contact us directly.' :
-               '¿Tiene preguntas? Nuestro equipo está listo para ayudarle. Rellene el formulario o contáctenos directamente.'}
-            </p>
-
+          <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }} className="lg:col-span-2">
+            <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">{t.nav.contact}</h1>
+            <p className="text-lg text-gray-600 mb-12 leading-relaxed">{t.contact.subtitle}</p>
             <div className="space-y-8">
-              {[
-                {
-                  icon: <Icons.Phone />,
-                  title: lang === 'nl' ? 'Telefoon' : lang === 'en' ? 'Phone' : 'Teléfono',
-                  value: '+31 (0)20 123 45 67',
-                  href: 'tel:+31201234567'
-                },
-                {
-                  icon: <Icons.Mail />,
-                  title: 'Email',
-                  value: 'contact@fondslink.nl',
-                  href: 'mailto:contact@fondslink.nl'
-                },
-                {
-                  icon: <Icons.MapPin />,
-                  title: lang === 'nl' ? 'Adres' : lang === 'en' ? 'Address' : 'Dirección',
-                  value: lang === 'nl' ? 'Amsterdam, Nederland' : lang === 'en' ? 'Amsterdam, Netherlands' : 'Ámsterdam, Países Bajos',
-                  href: '#'
-                },
-                {
-                  icon: <Icons.Clock />,
-                  title: lang === 'nl' ? 'Beschikbaarheid' : lang === 'en' ? 'Availability' : 'Disponibilidad',
-                  value: lang === 'nl' ? 'Ma-Vr: 09:00 - 18:00' : lang === 'en' ? 'Mon-Fri: 9:00 AM - 6:00 PM' : 'Lun-Vie: 09:00 - 18:00',
-                  href: '#'
-                }
-              ].map((item, i) => (
-                <motion.a
-                  key={i}
-                  href={item.href}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 + 0.3 }}
-                  whileHover={{ x: 5 }}
-                  className="flex items-start gap-4 group"
-                >
+              {contactItems.map((item, i) => (
+                <motion.a key={i} href={item.href} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 + 0.3 }} whileHover={{ x: 5 }} className="flex items-start gap-4 group">
                   <div className="w-12 h-12 bg-gray-50 group-hover:bg-[#D4AF37]/10 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors">
-                    <div className="text-[#D4AF37]">
-                      {item.icon}
-                    </div>
+                    <div className="text-[#D4AF37]">{item.icon}</div>
                   </div>
                   <div>
                     <div className="text-sm text-gray-500 mb-1">{item.title}</div>
-                    <div className="text-gray-900 font-semibold group-hover:text-[#D4AF37] transition-colors">
-                      {item.value}
-                    </div>
+                    <div className="text-gray-900 font-semibold group-hover:text-[#D4AF37] transition-colors">{item.value}</div>
                   </div>
                 </motion.a>
               ))}
             </div>
           </motion.div>
-
-          {/* Formulaire de contact */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="lg:col-span-3"
-          >
+          <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="lg:col-span-3">
             <form onSubmit={handleSubmit} className="bg-gray-50 p-8 md:p-12 rounded-2xl border border-gray-100">
               <div className="grid md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t.contact.name}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.contact.name}</label>
                   <div className="relative">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                      <Icons.User />
-                    </div>
-                    <input
-                      type="text"
-                      name="name"
-                      required
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all text-gray-900"
-                      placeholder={lang === 'nl' ? 'Uw volledige naam' : lang === 'en' ? 'Your full name' : 'Su nombre completo'}
-                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><Icons.User /></div>
+                    <input type="text" name="name" required value={formData.name} onChange={handleChange} className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all text-gray-900" placeholder={t.contact.name} />
                   </div>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t.contact.email}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.contact.email}</label>
                   <div className="relative">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                      <Icons.Mail />
-                    </div>
-                    <input
-                      type="email"
-                      name="email"
-                      required
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all text-gray-900"
-                      placeholder="email@voorbeeld.nl"
-                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><Icons.Mail /></div>
+                    <input type="email" name="email" required value={formData.email} onChange={handleChange} className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all text-gray-900" placeholder={t.contact.email} />
                   </div>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t.contact.phone}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.contact.phone}</label>
                   <div className="relative">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                      <Icons.Phone />
-                    </div>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all text-gray-900"
-                      placeholder="+31 6 12 34 56 78"
-                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><Icons.Phone /></div>
+                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all text-gray-900" placeholder={t.contact.phone} />
                   </div>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t.contact.subject}
-                  </label>
-                  <select
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all text-gray-900 cursor-pointer"
-                  >
-                    <option value="">
-                      {lang === 'nl' ? 'Selecteer onderwerp' : lang === 'en' ? 'Select subject' : 'Seleccionar asunto'}
-                    </option>
-                    <option value="info">
-                      {lang === 'nl' ? 'Algemene informatie' : lang === 'en' ? 'General information' : 'Información general'}
-                    </option>
-                    <option value="support">
-                      {lang === 'nl' ? 'Technische ondersteuning' : lang === 'en' ? 'Technical support' : 'Soporte técnico'}
-                    </option>
-                    <option value="loan">
-                      {lang === 'nl' ? 'Lening aanvraag' : lang === 'en' ? 'Loan application' : 'Solicitud de préstamo'}
-                    </option>
-                    <option value="other">
-                      {lang === 'nl' ? 'Anders' : lang === 'en' ? 'Other' : 'Otro'}
-                    </option>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.contact.subject}</label>
+                  <select name="subject" value={formData.subject} onChange={handleChange} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all text-gray-900 cursor-pointer">
+                    <option value="">{t.contact.selectSubject}</option>
+                    <option value="info">{t.contact.subjectOptions.info}</option>
+                    <option value="support">{t.contact.subjectOptions.support}</option>
+                    <option value="loan">{t.contact.subjectOptions.loan}</option>
+                    <option value="other">{t.contact.subjectOptions.other}</option>
                   </select>
                 </div>
               </div>
-
               <div className="mb-8">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t.contact.message}
-                </label>
-                <textarea
-                  name="message"
-                  rows={5}
-                  required
-                  value={formData.message}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all resize-none text-gray-900"
-                  placeholder={lang === 'nl' ? 'Uw bericht...' : lang === 'en' ? 'Your message...' : 'Su mensaje...'}
-                ></textarea>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t.contact.message}</label>
+                <textarea name="message" rows={5} required value={formData.message} onChange={handleChange} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all resize-none text-gray-900" placeholder={t.contact.message}></textarea>
               </div>
-
-              <motion.button
-                type="submit"
-                disabled={status === 'loading'}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full py-4 bg-[#D4AF37] text-white font-semibold rounded-lg hover:bg-[#C4A02E] transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
+              <motion.button type="submit" disabled={status === 'loading'} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full py-4 bg-[#D4AF37] text-white font-semibold rounded-lg hover:bg-[#C4A02E] transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                 {status === 'loading' ? (
-                  <>
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                    />
-                    {t.contact.sending}
-                  </>
+                  <><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="w-5 h-5 border-2 border-white border-t-transparent rounded-full" />{t.contact.sending}</>
                 ) : (
-                  <>
-                    {t.contact.send}
-                    <Icons.Send />
-                  </>
+                  <>{t.contact.send}<Icons.Send /></>
                 )}
               </motion.button>
             </form>
