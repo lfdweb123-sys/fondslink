@@ -262,7 +262,7 @@ export default function HomePage({ params }: { params: Promise<{ lang: string }>
               >
                 <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-gray-100">
                   <Image
-                    src="/images/hero-signing.jpg"
+                    src="/images/hero-signing.png"
                     alt="Professionele financiering"
                     fill
                     className="object-cover"
