@@ -1,59 +1,80 @@
+// src/app/[lang]/layout.tsx
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import Link from 'next/link';
-import { translations } from '@/lib/translations';
+import { getTranslations, locales } from '@/lib/i18n';
 
 const inter = Inter({ subsets: ['latin'] });
 
-export async function generateMetadata({ params }: { params: { lang: string } }): Promise<Metadata> {
-  const t = translations[params.lang as keyof typeof translations] || translations.nl;
+export async function generateMetadata({ 
+  params 
+}: { 
+  params: Promise<{ lang: string }> 
+}): Promise<Metadata> {
+  // ⚠️ ATTENTION : await params est OBLIGATOIRE en Next.js 16
+  const { lang } = await params;
+  const t = getTranslations(lang as any);
+  
   return {
     title: `FondsLink - ${t.hero.title}`,
     description: t.hero.subtitle,
     openGraph: {
       title: `FondsLink - ${t.hero.title}`,
       description: t.hero.subtitle,
-      url: `https://fondslink.com/${params.lang}`,
+      url: `https://fondslink.com/${lang}`,
       siteName: 'FondsLink',
-      locale: params.lang === 'nl' ? 'nl_NL' : params.lang === 'en' ? 'en_US' : 'es_ES',
+      locale: lang === 'nl' ? 'nl_NL' : lang === 'en' ? 'en_US' : 'es_ES',
       type: 'website',
     },
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
-  params: { lang: string };
+  params: Promise<{ lang: string }>;
 }) {
-  const t = translations[params.lang as keyof typeof translations] || translations.nl;
+  // ⚠️ ATTENTION : await params est OBLIGATOIRE en Next.js 16
+  const { lang } = await params;
+  const t = getTranslations(lang as any);
+
   const contactEmail = 
-    params.lang === 'nl' ? 'contact@fondslink.com' :
-    params.lang === 'en' ? 'contactus@fondslink.com' :
+    lang === 'nl' ? 'contact@fondslink.com' :
+    lang === 'en' ? 'contactus@fondslink.com' :
     'contacto@fondslink.com';
 
   return (
-    <html lang={params.lang}>
-      <body className={inter.className}>
+    <html lang={lang}>
+      <body className={`${inter.className} bg-white text-black antialiased`}>
         {/* HEADER */}
         <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 z-50">
           <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <Link href={`/${params.lang}`} className="text-2xl font-bold tracking-tight">
+            <Link href={`/${lang}`} className="text-2xl font-bold tracking-tight">
               FONDS<span className="text-[#D4AF37]">LINK</span>
             </Link>
             
             <nav className="hidden md:flex items-center gap-8">
-              <Link href={`/${params.lang}`} className="text-sm font-medium hover:text-[#D4AF37] transition-colors">{t.nav.home}</Link>
-              <Link href={`/${params.lang}/contact`} className="text-sm font-medium hover:text-[#D4AF37] transition-colors">{t.nav.contact}</Link>
+              <Link href={`/${lang}`} className="text-sm font-medium hover:text-[#D4AF37] transition-colors">
+                {t.nav.home}
+              </Link>
+              <Link href={`/${lang}/contact`} className="text-sm font-medium hover:text-[#D4AF37] transition-colors">
+                {t.nav.contact}
+              </Link>
               
-              {/* Sélecteur de langue simplifié */}
+              {/* Sélecteur de langue */}
               <div className="flex gap-2 text-xs border-l pl-6 ml-2">
-                <Link href="/nl" className={params.lang === 'nl' ? 'font-bold text-[#D4AF37]' : 'text-gray-400'}>NL</Link>
-                <Link href="/en" className={params.lang === 'en' ? 'font-bold text-[#D4AF37]' : 'text-gray-400'}>EN</Link>
-                <Link href="/es" className={params.lang === 'es' ? 'font-bold text-[#D4AF37]' : 'text-gray-400'}>ES</Link>
+                {locales.map((locale) => (
+                  <Link 
+                    key={locale} 
+                    href={`/${locale}`}
+                    className={lang === locale ? 'font-bold text-[#D4AF37]' : 'text-gray-400'}
+                  >
+                    {locale.toUpperCase()}
+                  </Link>
+                ))}
               </div>
 
               <button className="btn-primary text-sm">{t.nav.apply}</button>
@@ -86,7 +107,7 @@ export default function RootLayout({
               <h4 className="font-semibold mb-4 text-[#D4AF37]">Légal</h4>
               <p className="text-gray-500 text-xs leading-relaxed">
                 © {new Date().getFullYear()} FondsLink. Tous droits réservés.<br/>
-                Conforme aux réglementations financières européennes.
+                {t.footer.legal}
               </p>
             </div>
           </div>
