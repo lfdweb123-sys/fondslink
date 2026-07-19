@@ -1,8 +1,10 @@
+// src/components/LoanModal.tsx
 'use client';
+
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SignaturePad from './SignaturePad';
-import { translations } from '@/lib/translations';
+import { getTranslations, Locale } from '@/lib/i18n';
 
 interface Props {
   isOpen: boolean;
@@ -13,11 +15,15 @@ interface Props {
 export default function LoanModal({ isOpen, onClose, lang }: Props) {
   const [step, setStep] = useState(1);
   const [signature, setSignature] = useState<string>('');
-  const t = translations[lang as keyof typeof translations] || translations.nl;
+  
+  // Utilisation de la fonction strictement typée
+  const t = getTranslations(lang as Locale);
 
   // Fermer avec Echap
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [onClose]);
@@ -25,7 +31,12 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
   if (!isOpen) return null;
 
   const steps = [
-    t.form.personal, t.form.financial, t.form.bank, t.form.docs, t.form.contract, t.form.payment
+    t.form.personal, 
+    t.form.financial, 
+    t.form.bank, 
+    t.form.docs, 
+    t.form.contract, 
+    t.form.payment
   ];
 
   return (
@@ -42,7 +53,9 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
             <h2 className="text-xl font-bold">Demande de prêt</h2>
             <p className="text-sm text-gray-500 mt-1">Étape {step} sur {steps.length} : {steps[step-1]}</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-black text-2xl">×</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-black text-2xl" aria-label="Fermer">
+            ×
+          </button>
         </div>
 
         {/* Progress Bar */}
@@ -65,16 +78,16 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
             >
               {step === 1 && (
                 <div className="grid md:grid-cols-2 gap-6">
-                  <input placeholder="Nom" className="input-field" />
-                  <input placeholder="Prénom" className="input-field" />
-                  <input type="date" className="input-field" />
-                  <input placeholder="Nationalité" className="input-field" />
-                  <input placeholder="Adresse" className="input-field md:col-span-2" />
-                  <input placeholder="Ville" className="input-field" />
-                  <input placeholder="Code postal" className="input-field" />
-                  <input placeholder="Pays" className="input-field" />
-                  <input type="tel" placeholder="Téléphone" className="input-field" />
-                  <input type="email" placeholder="Email" className="input-field" />
+                  <input placeholder="Nom" className="input-field" aria-label="Nom" />
+                  <input placeholder="Prénom" className="input-field" aria-label="Prénom" />
+                  <input type="date" className="input-field" aria-label="Date de naissance" />
+                  <input placeholder="Nationalité" className="input-field" aria-label="Nationalité" />
+                  <input placeholder="Adresse" className="input-field md:col-span-2" aria-label="Adresse" />
+                  <input placeholder="Ville" className="input-field" aria-label="Ville" />
+                  <input placeholder="Code postal" className="input-field" aria-label="Code postal" />
+                  <input placeholder="Pays" className="input-field" aria-label="Pays" />
+                  <input type="tel" placeholder="Téléphone" className="input-field" aria-label="Téléphone" />
+                  <input type="email" placeholder="Email" className="input-field" aria-label="Email" />
                 </div>
               )}
 
@@ -83,23 +96,26 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
                   <div>
                     <label className="block text-sm font-medium mb-2">Montant demandé</label>
                     <div className="flex gap-2">
-                      <input type="number" className="input-field flex-1" />
-                      <select className="input-field w-24"><option>EUR</option><option>USD</option></select>
+                      <input type="number" className="input-field flex-1" aria-label="Montant" />
+                      <select className="input-field w-24" aria-label="Devise">
+                        <option>EUR</option>
+                        <option>USD</option>
+                      </select>
                     </div>
                   </div>
-                  <input type="number" placeholder="Durée (mois)" className="input-field" />
-                  <input type="number" placeholder="Revenu mensuel net" className="input-field" />
-                  <input placeholder="Profession" className="input-field" />
-                  <input placeholder="Employeur actuel" className="input-field" />
+                  <input type="number" placeholder="Durée (mois)" className="input-field" aria-label="Durée" />
+                  <input type="number" placeholder="Revenu mensuel net" className="input-field" aria-label="Revenu mensuel" />
+                  <input placeholder="Profession" className="input-field" aria-label="Profession" />
+                  <input placeholder="Employeur actuel" className="input-field" aria-label="Employeur" />
                 </div>
               )}
 
               {step === 3 && (
                 <div className="space-y-6 max-w-md mx-auto">
-                  <input placeholder="Nom de la banque" className="input-field" />
-                  <input placeholder="IBAN" className="input-field uppercase" />
-                  <input placeholder="BIC/SWIFT" className="input-field uppercase" />
-                  <input placeholder="Titulaire du compte" className="input-field" />
+                  <input placeholder="Nom de la banque" className="input-field" aria-label="Nom de la banque" />
+                  <input placeholder="IBAN" className="input-field uppercase" aria-label="IBAN" />
+                  <input placeholder="BIC/SWIFT" className="input-field uppercase" aria-label="BIC/SWIFT" />
+                  <input placeholder="Titulaire du compte" className="input-field" aria-label="Titulaire du compte" />
                 </div>
               )}
 
@@ -132,7 +148,7 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
                   </div>
                   
                   <label className="flex items-start gap-3 cursor-pointer">
-                    <input type="checkbox" className="mt-1 w-5 h-5 accent-[#D4AF37]" />
+                    <input type="checkbox" className="mt-1 w-5 h-5 accent-[#D4AF37]" aria-label="Accepter les conditions" />
                     <span className="text-sm text-gray-700">J'ai lu et j'accepte les conditions générales du contrat de prêt.</span>
                   </label>
 
@@ -146,13 +162,12 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
               {step === 6 && (
                 <div className="text-center py-12">
                   <div className="w-20 h-20 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <span className="text-3xl">💳</span>
+                    <span className="text-3xl" role="img" aria-label="Carte de crédit">💳</span>
                   </div>
                   <h3 className="text-2xl font-bold mb-4">Finalisation du dossier</h3>
                   <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                    Veuillez régler les frais administratifs ({process.env.NEXT_PUBLIC_ADMIN_FEE_AMOUNT}€) et d'ouverture de compte ({process.env.NEXT_PUBLIC_ACCOUNT_OPENING_FEE}€) pour valider automatiquement votre prêt.
+                    Veuillez régler les frais administratifs ({process.env.NEXT_PUBLIC_ADMIN_FEE_AMOUNT || '50'}€) et d'ouverture de compte ({process.env.NEXT_PUBLIC_ACCOUNT_OPENING_FEE || '25'}€) pour valider automatiquement votre prêt.
                   </p>
-                  {/* Intégration GeniusPay ici via card-payment.js existant */}
                   <div id="geniuspay-container" className="max-w-md mx-auto" />
                 </div>
               )}
