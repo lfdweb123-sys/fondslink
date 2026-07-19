@@ -3,12 +3,20 @@ export const locales = ['nl', 'en', 'es'] as const;
 export type Locale = (typeof locales)[number];
 export const defaultLocale: Locale = 'nl';
 
-export function getLocaleFromPath(pathname: string): Locale {
-  const locale = pathname.split('/')[1] as Locale;
-  return locales.includes(locale) ? locale : defaultLocale;
+// 1. Définition stricte de la structure des traductions
+export interface Translations {
+  nav: { home: string; contact: string; apply: string };
+  hero: { title: string; subtitle: string; cta: string };
+  benefits: { title: string; items: string[] };
+  steps: { title: string; s1: string; s2: string; s3: string; s4: string };
+  form: { personal: string; financial: string; bank: string; docs: string; contract: string; payment: string };
+  faq: { q1: string; a1: string; q2: string; a2: string };
+  contact: { name: string; email: string; phone: string; subject: string; message: string; send: string; sending: string; sentTitle: string; sentDesc: string };
+  footer: { legal: string };
 }
 
-export function getTranslations(lang: Locale) {
+// 2. La fonction retourne EXACTEMENT ce type, empêchant toute inférence erronée
+export function getTranslations(lang: Locale): Translations {
   return {
     nav: {
       home: lang === 'nl' ? 'Home' : lang === 'en' ? 'Home' : 'Inicio',
@@ -16,21 +24,9 @@ export function getTranslations(lang: Locale) {
       apply: lang === 'nl' ? 'Aanvraag indienen' : lang === 'en' ? 'Apply for a loan' : 'Solicitar préstamo',
     },
     hero: {
-      title: lang === 'nl' 
-        ? 'Professionele leningen voor uw toekomst' 
-        : lang === 'en' 
-          ? 'Professional loans for your future' 
-          : 'Préstamos profesionales para su futuro',
-      subtitle: lang === 'nl'
-        ? 'Veilig, snel en volledig online.'
-        : lang === 'en'
-          ? 'Secure, fast and fully online.'
-          : 'Seguro, rápido y totalmente en línea.',
-      cta: lang === 'nl'
-        ? 'Lening aanvragen'
-        : lang === 'en'
-          ? 'Apply for a loan'
-          : 'Solicitar préstamo',
+      title: lang === 'nl' ? 'Professionele leningen voor uw toekomst' : lang === 'en' ? 'Professional loans for your future' : 'Préstamos profesionales para su futuro',
+      subtitle: lang === 'nl' ? 'Veilig, snel en volledig online.' : lang === 'en' ? 'Secure, fast and fully online.' : 'Seguro, rápido y totalmente en línea.',
+      cta: lang === 'nl' ? 'Lening aanvragen' : lang === 'en' ? 'Apply for a loan' : 'Solicitar préstamo',
     },
     benefits: {
       title: lang === 'nl' ? 'Waarom FondsLink?' : lang === 'en' ? 'Why choose FondsLink?' : '¿Por qué elegir FondsLink?',
