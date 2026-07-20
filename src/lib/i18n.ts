@@ -41,6 +41,13 @@ export interface Translations {
     legalTitle: string;
     support: string;
     copyright: string;
+    privacyLink: string;
+    termsLink: string;
+  };
+  legal: {
+    privacy: { title: string; sections: { heading: string; body: string }[] };
+    terms: { title: string; sections: { heading: string; body: string }[] };
+    closeLabel: string;
   };
   stats: { clients: string; approval: string; experience: string };
   testimonials: { title: string; items: { text: string; name: string; role: string }[] };
@@ -192,6 +199,53 @@ const translations: Record<Locale, Translations> = {
       legalTitle: 'Juridisch',
       support: 'Meertalige ondersteuning 24/7',
       copyright: 'Alle rechten voorbehouden.',
+      privacyLink: 'Privacybeleid',
+      termsLink: 'Gebruiksvoorwaarden',
+    },
+    legal: {
+      closeLabel: 'Sluiten',
+      privacy: {
+        title: 'Privacybeleid',
+        sections: [
+          {
+            heading: '1. Verzamelde gegevens',
+            body: 'Wij verzamelen de persoonlijke en financiële gegevens die u ons via het aanvraagformulier verstrekt, uitsluitend om uw dossier te kunnen behandelen.',
+          },
+          {
+            heading: '2. Gebruik van gegevens',
+            body: 'Uw gegevens worden gebruikt om uw aanvraag te beoordelen, met u te communiceren en te voldoen aan onze wettelijke verplichtingen.',
+          },
+          {
+            heading: '3. Bewaartermijn',
+            body: 'Wij bewaren uw gegevens niet langer dan noodzakelijk is voor de doeleinden waarvoor ze zijn verzameld, of zoals wettelijk vereist.',
+          },
+          {
+            heading: '4. Uw rechten',
+            body: 'U heeft het recht op inzage, correctie en verwijdering van uw gegevens. Neem hiervoor contact met ons op via onze contactpagina.',
+          },
+        ],
+      },
+      terms: {
+        title: 'Gebruiksvoorwaarden',
+        sections: [
+          {
+            heading: '1. Toepassingsgebied',
+            body: 'Deze voorwaarden zijn van toepassing op elk gebruik van de FondsLink website en diensten.',
+          },
+          {
+            heading: '2. Toegang tot de dienst',
+            body: 'Het gebruik van onze diensten vereist dat u meerderjarig bent en juiste, volledige informatie verstrekt.',
+          },
+          {
+            heading: '3. Aansprakelijkheid',
+            body: 'FondsLink spant zich in om een betrouwbare dienst te leveren, maar aanvaardt geen aansprakelijkheid voor indirecte schade voortvloeiend uit het gebruik van de website.',
+          },
+          {
+            heading: '4. Wijzigingen',
+            body: 'Wij behouden ons het recht voor deze voorwaarden op elk moment te wijzigen. Wijzigingen worden op deze pagina gepubliceerd.',
+          },
+        ],
+      },
     },
     stats: {
       clients: 'Tevreden klanten',
@@ -396,6 +450,53 @@ const translations: Record<Locale, Translations> = {
       legalTitle: 'Legal',
       support: 'Multilingual support 24/7',
       copyright: 'All rights reserved.',
+      privacyLink: 'Privacy Policy',
+      termsLink: 'Terms of Use',
+    },
+    legal: {
+      closeLabel: 'Close',
+      privacy: {
+        title: 'Privacy Policy',
+        sections: [
+          {
+            heading: '1. Data collected',
+            body: 'We collect the personal and financial information you provide through the application form, solely to process your file.',
+          },
+          {
+            heading: '2. Use of data',
+            body: 'Your data is used to assess your application, communicate with you, and comply with our legal obligations.',
+          },
+          {
+            heading: '3. Retention period',
+            body: 'We do not keep your data longer than necessary for the purposes for which it was collected, or as required by law.',
+          },
+          {
+            heading: '4. Your rights',
+            body: 'You have the right to access, correct and delete your data. Please contact us via our contact page.',
+          },
+        ],
+      },
+      terms: {
+        title: 'Terms of Use',
+        sections: [
+          {
+            heading: '1. Scope',
+            body: 'These terms apply to any use of the FondsLink website and services.',
+          },
+          {
+            heading: '2. Access to the service',
+            body: 'Using our services requires you to be of legal age and to provide accurate, complete information.',
+          },
+          {
+            heading: '3. Liability',
+            body: 'FondsLink strives to provide a reliable service but accepts no liability for indirect damages arising from use of the website.',
+          },
+          {
+            heading: '4. Changes',
+            body: 'We reserve the right to modify these terms at any time. Changes will be published on this page.',
+          },
+        ],
+      },
     },
     stats: {
       clients: 'Satisfied customers',
@@ -600,6 +701,53 @@ const translations: Record<Locale, Translations> = {
       legalTitle: 'Legal',
       support: 'Soporte multilingüe 24/7',
       copyright: 'Todos los derechos reservados.',
+      privacyLink: 'Política de privacidad',
+      termsLink: 'Condiciones de uso',
+    },
+    legal: {
+      closeLabel: 'Cerrar',
+      privacy: {
+        title: 'Política de privacidad',
+        sections: [
+          {
+            heading: '1. Datos recopilados',
+            body: 'Recopilamos los datos personales y financieros que usted proporciona a través del formulario de solicitud, únicamente para procesar su expediente.',
+          },
+          {
+            heading: '2. Uso de los datos',
+            body: 'Sus datos se utilizan para evaluar su solicitud, comunicarnos con usted y cumplir con nuestras obligaciones legales.',
+          },
+          {
+            heading: '3. Plazo de conservación',
+            body: 'No conservamos sus datos más tiempo del necesario para los fines para los que fueron recopilados, o según lo exija la ley.',
+          },
+          {
+            heading: '4. Sus derechos',
+            body: 'Tiene derecho a acceder, corregir y eliminar sus datos. Contáctenos a través de nuestra página de contacto.',
+          },
+        ],
+      },
+      terms: {
+        title: 'Condiciones de uso',
+        sections: [
+          {
+            heading: '1. Ámbito de aplicación',
+            body: 'Estas condiciones se aplican a cualquier uso del sitio web y los servicios de FondsLink.',
+          },
+          {
+            heading: '2. Acceso al servicio',
+            body: 'El uso de nuestros servicios requiere que sea mayor de edad y proporcione información precisa y completa.',
+          },
+          {
+            heading: '3. Responsabilidad',
+            body: 'FondsLink se esfuerza por ofrecer un servicio fiable, pero no acepta responsabilidad por daños indirectos derivados del uso del sitio web.',
+          },
+          {
+            heading: '4. Modificaciones',
+            body: 'Nos reservamos el derecho de modificar estas condiciones en cualquier momento. Los cambios se publicarán en esta página.',
+          },
+        ],
+      },
     },
     stats: {
       clients: 'Clientes satisfechos',
