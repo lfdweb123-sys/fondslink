@@ -114,6 +114,7 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
 
   // Étape "contract"
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptGDPR, setAcceptGDPR] = useState(false);
 
   // Étape "final"
   const [paymentUrl, setPaymentUrl] = useState('');
@@ -143,7 +144,7 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
     }
   }, [isOpen]);
 
-  const totalSteps = 6;
+  const totalSteps = 7; // Augmenté à 7 pour l'étape IPID
 
   const submitApplication = async () => {
     setSubmitting(true);
@@ -157,9 +158,9 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
           : { propertyType, surfaceArea, constructionYear, propertyValue, numberOfRooms, hasAlarm, occupancyStatus }),
         coverageLevel,
         signature,
+        acceptGDPR,
       };
 
-      // Appel vers la vraie API de paiement
       const res = await fetch('/api/create-payment-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -224,13 +225,20 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
       if (!numberOfRooms || Number(numberOfRooms) <= 0) e.numberOfRooms = true;
       if (!occupancyStatus) e.occupancyStatus = true;
     }
+    if (step === 3) {
+      // Coverage - pas de validation, c'est un choix
+    }
     if (step === 4) {
+      // IPID - pas de validation
+    }
+    if (step === 5) {
       if (!idDocument) e.idDocument = true;
       if (!proofOfAddress) e.proofOfAddress = true;
       if (!specificDoc) e.specificDoc = true;
     }
-    if (step === 5) {
+    if (step === 6) {
       if (!acceptTerms) e.acceptTerms = true;
+      if (!acceptGDPR) e.acceptGDPR = true;
       if (!signature) e.signature = true;
     }
     return e;
@@ -266,6 +274,7 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
     m.personal.title,
     insuranceType === 'home' ? m.home.title : m.vehicle.title,
     m.coverage.title,
+    m.ipid.title,
     m.docs.title,
     m.contract.title,
     t.ctaButton,
@@ -276,6 +285,12 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
     { key: 'standard', label: m.coverage.standard, desc: m.coverage.standardDesc, price: t.modal.coverage.standardPrice },
     { key: 'premium', label: m.coverage.premium, desc: m.coverage.premiumDesc, price: t.modal.coverage.premiumPrice },
   ];
+
+  // Obtenir le prix pour l'IPID
+  const getSelectedPrice = () => {
+    const opt = coverageOptions.find(o => o.key === coverageLevel);
+    return opt ? opt.price : 29;
+  };
 
   return (
     <AnimatePresence>
@@ -316,6 +331,18 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
                 />
               </div>
             )}
+
+            {/* ⚠️ Bandeau sécurité paiement - toujours visible */}
+            <div className="bg-green-50 border-b border-green-200 px-8 py-3 text-xs text-green-700 flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="1" y="7" width="22" height="14" rx="2" ry="2" />
+                <path d="M1 10h22" />
+                <circle cx="12" cy="15" r="1.5" />
+              </svg>
+              <span>
+                🔒 {m.securePayment} · {m.securePaymentDesc}
+              </span>
+            </div>
 
             <div className="p-8">
               <AnimatePresence mode="wait">
@@ -467,8 +494,111 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
                     </div>
                   )}
 
-                  {/* Étape 4 — documents */}
+                  {/* Étape 4 — IPID + RGPD + Délai de rétractation (NOUVELLE ÉTAPE) */}
                   {step === 4 && (
+                    <div className="space-y-6 max-w-3xl mx-auto">
+                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                          <span className="text-blue-600">📋</span> {m.ipid.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-6">{m.ipid.subtitle}</p>
+
+                        <div className="grid md:grid-cols-2 gap-4 mb-6">
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <p className="text-xs text-gray-500">{m.ipid.productType}</p>
+                            <p className="font-semibold text-gray-900">
+                              {insuranceType === 'vehicle' ? m.ipid.vehicleInsurance : m.ipid.homeInsurance}
+                            </p>
+                          </div>
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <p className="text-xs text-gray-500">{m.ipid.coverageLevel}</p>
+                            <p className="font-semibold text-gray-900">
+                              {coverageOptions.find(o => o.key === coverageLevel)?.label}
+                            </p>
+                          </div>
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <p className="text-xs text-gray-500">{m.ipid.premium}</p>
+                            <p className="font-semibold text-[#D4AF37]">{getSelectedPrice()} € / {m.ipid.month}</p>
+                            <p className="text-xs text-gray-400">{m.ipid.annualPremium} {getSelectedPrice() * 12} €</p>
+                          </div>
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <p className="text-xs text-gray-500">{m.ipid.duration}</p>
+                            <p className="font-semibold text-gray-900">{m.ipid.durationValue}</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <p className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                              <span>✅</span> {m.ipid.coveredRisks}
+                            </p>
+                            <ul className="text-sm text-gray-600 mt-2 space-y-1 list-disc list-inside">
+                              {insuranceType === 'vehicle' ? (
+                                <>
+                                  <li>{m.ipid.coveredVehicle}</li>
+                                  <li>{m.ipid.coveredTheft}</li>
+                                  <li>{m.ipid.coveredDamage}</li>
+                                </>
+                              ) : (
+                                <>
+                                  <li>{m.ipid.coveredHome}</li>
+                                  <li>{m.ipid.coveredContents}</li>
+                                  <li>{m.ipid.coveredLiability}</li>
+                                </>
+                              )}
+                            </ul>
+                          </div>
+
+                          <div className="bg-white rounded-lg p-4 border border-gray-200 border-yellow-300">
+                            <p className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                              <span>⚠️</span> {m.ipid.exclusions}
+                            </p>
+                            <ul className="text-sm text-gray-600 mt-2 space-y-1 list-disc list-inside">
+                              {insuranceType === 'vehicle' ? (
+                                <>
+                                  <li>{m.ipid.excludedWear}</li>
+                                  <li>{m.ipid.excludedDrunk}</li>
+                                </>
+                              ) : (
+                                <>
+                                  <li>{m.ipid.excludedFlood}</li>
+                                  <li>{m.ipid.excludedNegligence}</li>
+                                </>
+                              )}
+                            </ul>
+                          </div>
+
+                          <div className="bg-white rounded-lg p-4 border border-gray-200 border-green-300">
+                            <p className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                              <span>🔔</span> {m.ipid.withdrawal}
+                            </p>
+                            <p className="text-sm text-gray-600 mt-1">{m.ipid.withdrawalText}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* RGPD - Case à cocher */}
+                      <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <span>🔒</span> {m.ipid.gdprTitle}
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-4">{m.ipid.gdprText}</p>
+                        <label className={`flex items-start gap-3 cursor-pointer p-4 rounded-lg transition-colors ${errors.acceptGDPR ? 'bg-red-50 border border-red-300' : 'bg-white hover:bg-gray-50 border border-gray-200'}`}>
+                          <input
+                            type="checkbox"
+                            checked={acceptGDPR}
+                            onChange={(e) => { setAcceptGDPR(e.target.checked); setErrors(p => ({ ...p, acceptGDPR: false })); }}
+                            className="mt-1 w-5 h-5 accent-[#D4AF37]"
+                          />
+                          <span className="text-sm text-gray-700">{m.ipid.gdprConsent}</span>
+                        </label>
+                        {errors.acceptGDPR && <p className="text-red-500 text-xs mt-1">{m.mustAcceptGDPR}</p>}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Étape 5 — documents */}
+                  {step === 5 && (
                     <div className="space-y-6 max-w-md mx-auto">
                       {[
                         { label: m.docs.idDocument, sub: `PDF, JPG (${m.docs.maxSize})`, field: 'idDocument', file: idDocument, setter: setIdDocument },
@@ -488,12 +618,16 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
                     </div>
                   )}
 
-                  {/* Étape 5 — contrat + signature */}
-                  {step === 5 && (
+                  {/* Étape 6 — contrat + signature */}
+                  {step === 6 && (
                     <div className="space-y-6">
                       <div className="bg-gray-50 p-6 rounded-lg text-sm leading-relaxed h-64 overflow-y-auto border border-gray-200">
                         <h3 className="font-bold mb-4 text-center text-gray-900">{m.contract.contractTitle}</h3>
                         {m.contract.sections.map((s, i) => <p key={i} className="mb-4 text-gray-700">{s}</p>)}
+                        {/* Ajout du délai de rétractation dans le contrat */}
+                        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <p className="text-sm text-gray-700 font-semibold">🔔 {m.contract.withdrawalNotice}</p>
+                        </div>
                       </div>
                       <div>
                         <label className={`flex items-start gap-3 cursor-pointer p-4 rounded-lg transition-colors ${errors.acceptTerms ? 'bg-red-50 border border-red-300' : 'bg-gray-50 hover:bg-gray-100'}`}>
@@ -515,8 +649,8 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
                     </div>
                   )}
 
-                  {/* Étape 6 — résultat */}
-                  {step === 6 && (
+                  {/* Étape 7 — résultat */}
+                  {step === 7 && (
                     <div className="text-center py-12">
                       <div className="w-20 h-20 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-6">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -552,6 +686,19 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
                             {m.final.depositNote}
                           </p>
                           <p className="text-sm text-gray-500 mb-8">{m.final.emailSentNote}</p>
+                          
+                          {/* 🔒 Bandeau sécurité paiement */}
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
+                            <p className="text-xs text-green-700 flex items-center justify-center gap-2">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <rect x="1" y="7" width="22" height="14" rx="2" ry="2" />
+                                <path d="M1 10h22" />
+                                <circle cx="12" cy="15" r="1.5" />
+                              </svg>
+                              {m.final.securePayment}
+                            </p>
+                          </div>
+
                           <a href={paymentUrl} className="btn-primary inline-block">
                             {m.final.payNow} →
                           </a>
@@ -565,10 +712,10 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
 
             {step >= 1 && (
               <div className="sticky bottom-0 bg-white border-t px-8 py-6 flex justify-between rounded-b-2xl">
-                <button onClick={handlePrev} disabled={step === 6} className="px-6 py-3 text-gray-500 hover:text-black disabled:opacity-30 transition-colors font-medium">
+                <button onClick={handlePrev} disabled={step === 7} className="px-6 py-3 text-gray-500 hover:text-black disabled:opacity-30 transition-colors font-medium">
                   ← {m.previous}
                 </button>
-                {step < 6 && (
+                {step < 7 && (
                   <button onClick={handleNext} className="btn-primary">{m.continue} →</button>
                 )}
               </div>
