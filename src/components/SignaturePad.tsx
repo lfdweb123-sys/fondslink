@@ -72,13 +72,49 @@ export default function SignaturePad({ onSign, lang = 'nl' }: Props) {
 
   return (
     <div className="border border-gray-300 rounded-lg bg-white overflow-hidden">
-      <canvas ref={canvasRef} width={500} height={200} className="w-full h-[200px] cursor-crosshair touch-none" onMouseDown={startDraw} onMouseMove={draw} onMouseUp={endDraw} onMouseLeave={endDraw} onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={endDraw} />
+      <canvas 
+        ref={canvasRef} 
+        width={500} 
+        height={200} 
+        className="w-full h-[200px] cursor-crosshair touch-none" 
+        onMouseDown={startDraw} 
+        onMouseMove={draw} 
+        onMouseUp={endDraw} 
+        onMouseLeave={endDraw} 
+        onTouchStart={startDraw} 
+        onTouchMove={draw} 
+        onTouchEnd={endDraw} 
+      />
       <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-t border-gray-200">
-        <p className="text-xs text-gray-500">{t.signature.signHere}</p>
-        <button type="button" onClick={clearSignature} className="text-xs text-gray-500 hover:text-red-500 transition-colors flex items-center gap-1">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        <div className="flex items-center gap-2">
+          <p className="text-xs text-gray-500">{t.signature.signHere}</p>
+          <span className="text-[10px] text-gray-400 hidden sm:inline">
+            {t.signature.legalNotice}
+          </span>
+        </div>
+        <button 
+          type="button" 
+          onClick={clearSignature} 
+          className="text-xs text-gray-500 hover:text-red-500 transition-colors flex items-center gap-1"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
           {t.signature.clear}
         </button>
+      </div>
+      {/* Mention juridique en dessous pour mobile */}
+      <div className="px-3 py-1.5 bg-gray-50 border-t border-gray-100 sm:hidden">
+        <p className="text-[10px] text-gray-400 text-center">
+          {t.signature.legalNotice}
+        </p>
+      </div>
+      {/* Mention de conformité */}
+      <div className="px-3 py-1.5 bg-green-50 border-t border-green-100">
+        <p className="text-[10px] text-green-600 text-center flex items-center justify-center gap-1">
+          <span>✅</span> {t.signature.compliance}
+        </p>
       </div>
     </div>
   );
