@@ -84,6 +84,14 @@ export interface Translations {
     step6: {
       finalizingTitle: string;
       finalizingDesc: string;
+      linkReadyTitle: string;
+      depositLabel: string;
+      depositNote: string;
+      emailSentNote: string;
+      payNow: string;
+      retry: string;
+      errorGeneric: string;
+      errorNetwork: string;
     };
   };
   signature: {
@@ -93,7 +101,7 @@ export interface Translations {
 }
 
 export function getTranslations(lang: Locale): Translations {
-  return translations[lang];
+  return translations[lang] || translations[defaultLocale];
 }
 
 const translations: Record<Locale, Translations> = {
@@ -285,7 +293,15 @@ const translations: Record<Locale, Translations> = {
       },
       step6: {
         finalizingTitle: 'Afronding van het dossier',
-        finalizingDesc: 'Gelieve de administratieve kosten en de kosten voor het openen van een rekening te betalen om uw lening automatisch te valideren.',
+        finalizingDesc: 'Wij bereiden uw betalingslink voor, een ogenblik geduld.',
+        linkReadyTitle: 'Uw betalingslink is klaar',
+        depositLabel: 'Te betalen voorschot:',
+        depositNote: '(25% van het gevraagde bedrag)',
+        emailSentNote: 'Deze link is ook per e-mail naar u verzonden.',
+        payNow: 'Nu voorschot betalen',
+        retry: 'Opnieuw proberen',
+        errorGeneric: 'Er is een fout opgetreden. Probeer het opnieuw.',
+        errorNetwork: 'Netwerkfout, probeer het opnieuw.',
       },
     },
     signature: {
@@ -481,7 +497,15 @@ const translations: Record<Locale, Translations> = {
       },
       step6: {
         finalizingTitle: 'Finalizing the file',
-        finalizingDesc: 'Please pay the administrative fees and account opening fees to automatically validate your loan.',
+        finalizingDesc: 'We are preparing your payment link, please wait.',
+        linkReadyTitle: 'Your payment link is ready',
+        depositLabel: 'Deposit to pay:',
+        depositNote: '(25% of the requested amount)',
+        emailSentNote: 'This link has also been sent to you by email.',
+        payNow: 'Pay deposit now',
+        retry: 'Retry',
+        errorGeneric: 'An error occurred. Please try again.',
+        errorNetwork: 'Network error, please try again.',
       },
     },
     signature: {
@@ -677,7 +701,15 @@ const translations: Record<Locale, Translations> = {
       },
       step6: {
         finalizingTitle: 'Finalización del expediente',
-        finalizingDesc: 'Por favor, pague las tasas administrativas y de apertura de cuenta para validar automáticamente su préstamo.',
+        finalizingDesc: 'Estamos preparando su enlace de pago, un momento por favor.',
+        linkReadyTitle: 'Su enlace de pago está listo',
+        depositLabel: 'Depósito a pagar:',
+        depositNote: '(25% del importe solicitado)',
+        emailSentNote: 'Este enlace también le ha sido enviado por correo electrónico.',
+        payNow: 'Pagar depósito ahora',
+        retry: 'Reintentar',
+        errorGeneric: 'Se produjo un error. Inténtelo de nuevo.',
+        errorNetwork: 'Error de red, inténtelo de nuevo.',
       },
     },
     signature: {
