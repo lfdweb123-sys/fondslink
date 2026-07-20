@@ -813,6 +813,7 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
                           </p>
                           <p className="text-sm text-gray-500 mb-8">{m.final.emailSentNote}</p>
                           
+                          {/* 🔒 Bandeau sécurité paiement */}
                           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
                             <p className="text-xs text-green-700 flex items-center justify-center gap-2">
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -824,7 +825,12 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
                             </p>
                           </div>
 
-                          <a href={paymentUrl} className="btn-primary inline-block">
+                          <a 
+                            href={paymentUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="btn-primary inline-block"
+                          >
                             {m.final.payNow} →
                           </a>
                         </>
