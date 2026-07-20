@@ -4,7 +4,7 @@ export type Locale = (typeof locales)[number];
 export const defaultLocale: Locale = 'nl';
 
 export interface Translations {
-  nav: { home: string; contact: string; apply: string };
+  nav: { home: string; contact: string; apply: string; insurance: string };
   hero: { title: string; subtitle: string; cta: string; badge: string };
   benefits: { title: string; subtitle: string; items: string[]; description: string };
   steps: { title: string; subtitle: string; s1: string; s2: string; s3: string; s4: string; descriptions: string[] };
@@ -119,6 +119,7 @@ const translations: Record<Locale, Translations> = {
       home: 'Home',
       contact: 'Contact',
       apply: 'Aanvraag indienen',
+      insurance: 'Verzekering',
     },
     hero: {
       title: 'Professionele leningen voor uw toekomst',
@@ -372,6 +373,7 @@ const translations: Record<Locale, Translations> = {
       home: 'Home',
       contact: 'Contact',
       apply: 'Apply for a loan',
+      insurance: 'Insurance',
     },
     hero: {
       title: 'Professional loans for your future',
@@ -625,6 +627,7 @@ const translations: Record<Locale, Translations> = {
       home: 'Inicio',
       contact: 'Contacto',
       apply: 'Solicitar préstamo',
+      insurance: 'Seguro',
     },
     hero: {
       title: 'Préstamos profesionales para su futuro',
