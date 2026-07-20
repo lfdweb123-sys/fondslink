@@ -1,7 +1,25 @@
-import type { NextConfig } from "next";
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  serverExternalPackages: ['pdfkit'],
 
-const nextConfig: NextConfig = {
-  /* config options here */
+  // Assure que les fichiers de polices .afm de pdfkit sont bien inclus
+  // dans le build de sortie (nécessaire sur Vercel notamment)
+  outputFileTracingIncludes: {
+    '/api/create-payment-link': ['./node_modules/pdfkit/js/data/**'],
+  },
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+      },
+    ],
+  },
+
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
