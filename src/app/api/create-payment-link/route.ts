@@ -104,9 +104,10 @@ export async function POST(req: NextRequest) {
     // ── 2. Générer l'ID de commande ──
     const orderId = (isInsurance ? 'INS-' : 'FL-') + Date.now().toString(36).toUpperCase();
 
-    // ── 3. Créer le lien de paiement GeniusPay ──
+    // ── 3. URL de base depuis la variable d'environnement ──
     const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://fondslink.com';
 
+    // ── 4. Créer le lien de paiement GeniusPay ──
     if (!GP_API_KEY || !GP_API_SECRET) {
       console.error('❌ Missing GENIUSPAY_API_KEY / GENIUSPAY_API_SECRET env vars');
       return NextResponse.json({ success: false, message: 'Configuration de paiement manquante' }, { status: 500 });
@@ -166,39 +167,54 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Lien de paiement indisponible' }, { status: 502 });
     }
 
-    // ── 4. Appeler l'API Brevo pour générer le PDF et envoyer les emails ──
+    // ── 5. Appeler l'API Brevo pour générer le PDF et envoyer les emails ──
     const brevoUrl = `${BASE_URL}/api/brevo`;
-    const brevoRes = await fetch(brevoUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        applicationData,
-        lang,
-        type,
-        depositAmount: amountToCharge,
-        currency,
+    
+    try {
+      const brevoRes = await fetch(brevoUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          applicationData,
+          lang,
+          type,
+          depositAmount: amountToCharge,
+          currency,
+          orderId,
+          paymentUrl,
+        }),
+      });
+
+      if (!brevoRes.ok) {
+        console.error('❌ Brevo API error:', await brevoRes.text());
+      }
+
+      const brevoData = await brevoRes.json().catch(() => ({}));
+      
+      // ── 6. Retourner la réponse ──
+      return NextResponse.json({
+        success: true,
         orderId,
         paymentUrl,
-      }),
-    });
-
-    if (!brevoRes.ok) {
-      console.error('❌ Brevo API error:', await brevoRes.text());
-      // On continue quand même, le lien de paiement est déjà créé
+        depositAmount: amountToCharge,
+        currency,
+        contractUrl: brevoData.contractUrl || '',
+        type,
+      });
+    } catch (brevoError) {
+      // Si Brevo échoue, on retourne quand même le lien de paiement
+      console.error('⚠️ Brevo service error (non-blocking):', brevoError);
+      return NextResponse.json({
+        success: true,
+        orderId,
+        paymentUrl,
+        depositAmount: amountToCharge,
+        currency,
+        contractUrl: '',
+        type,
+        warning: 'Email non envoyé, mais le lien de paiement est disponible',
+      });
     }
-
-    const brevoData = await brevoRes.json().catch(() => ({}));
-
-    // ── 5. Retourner la réponse ──
-    return NextResponse.json({
-      success: true,
-      orderId,
-      paymentUrl,
-      depositAmount: amountToCharge,
-      currency,
-      contractUrl: brevoData.contractUrl || '',
-      type,
-    });
   } catch (error) {
     console.error('❌ create-payment-link error:', error);
     return NextResponse.json({ success: false, message: String(error) }, { status: 500 });
