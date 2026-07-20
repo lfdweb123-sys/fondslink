@@ -13,7 +13,7 @@ interface Props {
 }
 
 // Sélecteur de date personnalisé professionnel
-function DatePicker({ label, value, onChange, lang, error }: { label: string; value: string; onChange: (val: string) => void; lang: string; error?: boolean }) {
+function DatePicker({ label, value, onChange, lang, error, errorText }: { label: string; value: string; onChange: (val: string) => void; lang: string; error?: boolean; errorText?: string }) {
   const [day, setDay] = useState('');
   const [month, setMonth] = useState('');
   const [year, setYear] = useState('');
@@ -72,7 +72,7 @@ function DatePicker({ label, value, onChange, lang, error }: { label: string; va
           <line x1="3" y1="10" x2="21" y2="10"></line>
         </svg>
       </button>
-      {error && <p className="text-red-500 text-xs mt-1">{lang === 'nl' ? 'Verplicht veld' : lang === 'en' ? 'Required field' : 'Campo requerido'}</p>}
+      {error && <p className="text-red-500 text-xs mt-1">{errorText}</p>}
 
       {isOpen && (
         <div className="absolute z-20 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl p-4 w-full min-w-[300px]">
@@ -123,10 +123,10 @@ function DatePicker({ label, value, onChange, lang, error }: { label: string; va
 
 // Champ texte contrôlé avec affichage d'erreur
 function Field({
-  label, value, onChange, error, type = 'text', placeholder, className = '', min, max,
+  label, value, onChange, error, type = 'text', placeholder, className = '', min, max, errorText,
 }: {
   label: string; value: string; onChange: (v: string) => void; error?: boolean;
-  type?: string; placeholder?: string; className?: string; min?: string; max?: string;
+  type?: string; placeholder?: string; className?: string; min?: string; max?: string; errorText?: string;
 }) {
   return (
     <div>
@@ -140,7 +140,7 @@ function Field({
         max={max}
         className={`input-field ${className} ${error ? 'border-red-500 focus:ring-red-500' : ''}`}
       />
-      {error && <p className="text-red-500 text-xs mt-1">Champ requis</p>}
+      {error && <p className="text-red-500 text-xs mt-1">{errorText}</p>}
     </div>
   );
 }
@@ -282,21 +282,21 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
                 <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
                   {step === 1 && (
                     <div className="grid md:grid-cols-2 gap-6">
-                      <Field label={lm.step1.lastName} value={lastName} onChange={(v) => { setLastName(v); setErrors(p => ({ ...p, lastName: false })); }} placeholder={lm.step1.lastName} error={errors.lastName} />
-                      <Field label={lm.step1.firstName} value={firstName} onChange={(v) => { setFirstName(v); setErrors(p => ({ ...p, firstName: false })); }} placeholder={lm.step1.firstName} error={errors.firstName} />
+                      <Field label={lm.step1.lastName} value={lastName} onChange={(v) => { setLastName(v); setErrors(p => ({ ...p, lastName: false })); }} placeholder={lm.step1.lastName} error={errors.lastName} errorText={lm.requiredField} />
+                      <Field label={lm.step1.firstName} value={firstName} onChange={(v) => { setFirstName(v); setErrors(p => ({ ...p, firstName: false })); }} placeholder={lm.step1.firstName} error={errors.firstName} errorText={lm.requiredField} />
                       <div>
-                        <DatePicker label={lm.step1.birthDate} value={birthDate} onChange={(v) => { setBirthDate(v); setErrors(p => ({ ...p, birthDate: false })); }} lang={lang} error={errors.birthDate} />
+                        <DatePicker label={lm.step1.birthDate} value={birthDate} onChange={(v) => { setBirthDate(v); setErrors(p => ({ ...p, birthDate: false })); }} lang={lang} error={errors.birthDate} errorText={lm.requiredField} />
                       </div>
-                      <Field label={lm.step1.nationality} value={nationality} onChange={(v) => { setNationality(v); setErrors(p => ({ ...p, nationality: false })); }} placeholder={lm.step1.nationality} error={errors.nationality} />
+                      <Field label={lm.step1.nationality} value={nationality} onChange={(v) => { setNationality(v); setErrors(p => ({ ...p, nationality: false })); }} placeholder={lm.step1.nationality} error={errors.nationality} errorText={lm.requiredField} />
                       <div className="md:col-span-2">
-                        <Field label={lm.step1.address} value={address} onChange={(v) => { setAddress(v); setErrors(p => ({ ...p, address: false })); }} placeholder={lm.step1.address} error={errors.address} />
+                        <Field label={lm.step1.address} value={address} onChange={(v) => { setAddress(v); setErrors(p => ({ ...p, address: false })); }} placeholder={lm.step1.address} error={errors.address} errorText={lm.requiredField} />
                       </div>
-                      <Field label={lm.step1.city} value={city} onChange={(v) => { setCity(v); setErrors(p => ({ ...p, city: false })); }} placeholder={lm.step1.city} error={errors.city} />
-                      <Field label={lm.step1.postalCode} value={postalCode} onChange={(v) => { setPostalCode(v); setErrors(p => ({ ...p, postalCode: false })); }} placeholder={lm.step1.postalCode} error={errors.postalCode} />
-                      <Field label={lm.step1.country} value={country} onChange={(v) => { setCountry(v); setErrors(p => ({ ...p, country: false })); }} placeholder={lm.step1.country} error={errors.country} />
-                      <Field label={lm.step1.phone} value={phone} onChange={(v) => { setPhone(v); setErrors(p => ({ ...p, phone: false })); }} type="tel" placeholder={lm.step1.phone} error={errors.phone} />
+                      <Field label={lm.step1.city} value={city} onChange={(v) => { setCity(v); setErrors(p => ({ ...p, city: false })); }} placeholder={lm.step1.city} error={errors.city} errorText={lm.requiredField} />
+                      <Field label={lm.step1.postalCode} value={postalCode} onChange={(v) => { setPostalCode(v); setErrors(p => ({ ...p, postalCode: false })); }} placeholder={lm.step1.postalCode} error={errors.postalCode} errorText={lm.requiredField} />
+                      <Field label={lm.step1.country} value={country} onChange={(v) => { setCountry(v); setErrors(p => ({ ...p, country: false })); }} placeholder={lm.step1.country} error={errors.country} errorText={lm.requiredField} />
+                      <Field label={lm.step1.phone} value={phone} onChange={(v) => { setPhone(v); setErrors(p => ({ ...p, phone: false })); }} type="tel" placeholder={lm.step1.phone} error={errors.phone} errorText={lm.requiredField} />
                       <div className="md:col-span-2">
-                        <Field label={lm.step1.email} value={email} onChange={(v) => { setEmail(v); setErrors(p => ({ ...p, email: false })); }} type="email" placeholder={lm.step1.email} error={errors.email} />
+                        <Field label={lm.step1.email} value={email} onChange={(v) => { setEmail(v); setErrors(p => ({ ...p, email: false })); }} type="email" placeholder={lm.step1.email} error={errors.email} errorText={lm.requiredField} />
                       </div>
                     </div>
                   )}
@@ -319,11 +319,11 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
                             <option>GBP</option>
                           </select>
                         </div>
-                        {errors.amount && <p className="text-red-500 text-xs mt-1">Champ requis</p>}
+                        {errors.amount && <p className="text-red-500 text-xs mt-1">{lm.requiredField}</p>}
                       </div>
-                      <Field label={lm.step2.duration} value={duration} onChange={(v) => { setDuration(v); setErrors(p => ({ ...p, duration: false })); }} type="number" placeholder="12" min="1" max="360" error={errors.duration} />
-                      <Field label={lm.step2.monthlyIncome} value={monthlyIncome} onChange={(v) => { setMonthlyIncome(v); setErrors(p => ({ ...p, monthlyIncome: false })); }} type="number" placeholder="0" min="0" error={errors.monthlyIncome} />
-                      <Field label={lm.step2.profession} value={profession} onChange={(v) => { setProfession(v); setErrors(p => ({ ...p, profession: false })); }} placeholder={lm.step2.profession} error={errors.profession} />
+                      <Field label={lm.step2.duration} value={duration} onChange={(v) => { setDuration(v); setErrors(p => ({ ...p, duration: false })); }} type="number" placeholder="12" min="1" max="360" error={errors.duration} errorText={lm.requiredField} />
+                      <Field label={lm.step2.monthlyIncome} value={monthlyIncome} onChange={(v) => { setMonthlyIncome(v); setErrors(p => ({ ...p, monthlyIncome: false })); }} type="number" placeholder="0" min="0" error={errors.monthlyIncome} errorText={lm.requiredField} />
+                      <Field label={lm.step2.profession} value={profession} onChange={(v) => { setProfession(v); setErrors(p => ({ ...p, profession: false })); }} placeholder={lm.step2.profession} error={errors.profession} errorText={lm.requiredField} />
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step2.employer}</label>
                         <input type="text" value={employer} onChange={(e) => setEmployer(e.target.value)} placeholder={lm.step2.employer} className="input-field" />
@@ -332,10 +332,10 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
                   )}
                   {step === 3 && (
                     <div className="space-y-6 max-w-md mx-auto">
-                      <Field label={lm.step3.bankName} value={bankName} onChange={(v) => { setBankName(v); setErrors(p => ({ ...p, bankName: false })); }} placeholder={lm.step3.bankName} error={errors.bankName} />
-                      <Field label={lm.step3.iban} value={iban} onChange={(v) => { setIban(v.toUpperCase()); setErrors(p => ({ ...p, iban: false })); }} placeholder={lm.step3.iban} className="uppercase" error={errors.iban} />
-                      <Field label={lm.step3.bic} value={bic} onChange={(v) => { setBic(v.toUpperCase()); setErrors(p => ({ ...p, bic: false })); }} placeholder={lm.step3.bic} className="uppercase" error={errors.bic} />
-                      <Field label={lm.step3.accountHolder} value={accountHolder} onChange={(v) => { setAccountHolder(v); setErrors(p => ({ ...p, accountHolder: false })); }} placeholder={lm.step3.accountHolder} error={errors.accountHolder} />
+                      <Field label={lm.step3.bankName} value={bankName} onChange={(v) => { setBankName(v); setErrors(p => ({ ...p, bankName: false })); }} placeholder={lm.step3.bankName} error={errors.bankName} errorText={lm.requiredField} />
+                      <Field label={lm.step3.iban} value={iban} onChange={(v) => { setIban(v.toUpperCase()); setErrors(p => ({ ...p, iban: false })); }} placeholder={lm.step3.iban} className="uppercase" error={errors.iban} errorText={lm.requiredField} />
+                      <Field label={lm.step3.bic} value={bic} onChange={(v) => { setBic(v.toUpperCase()); setErrors(p => ({ ...p, bic: false })); }} placeholder={lm.step3.bic} className="uppercase" error={errors.bic} errorText={lm.requiredField} />
+                      <Field label={lm.step3.accountHolder} value={accountHolder} onChange={(v) => { setAccountHolder(v); setErrors(p => ({ ...p, accountHolder: false })); }} placeholder={lm.step3.accountHolder} error={errors.accountHolder} errorText={lm.requiredField} />
                     </div>
                   )}
                   {step === 4 && (
@@ -357,7 +357,7 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
                           </div>
                           <p className="font-medium text-gray-900">{f.t} *</p>
                           <p className="text-xs text-gray-500 mt-2">{f.file ? f.file.name : f.s}</p>
-                          {errors[f.field] && <p className="text-red-500 text-xs mt-2">Fichier requis</p>}
+                          {errors[f.field] && <p className="text-red-500 text-xs mt-2">{lm.fileRequired}</p>}
                         </label>
                       ))}
                     </div>
@@ -378,12 +378,12 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
                           />
                           <span className="text-sm text-gray-700">{lm.step5.acceptTerms}</span>
                         </label>
-                        {errors.acceptTerms && <p className="text-red-500 text-xs mt-1">Vous devez accepter les conditions</p>}
+                        {errors.acceptTerms && <p className="text-red-500 text-xs mt-1">{lm.mustAcceptTerms}</p>}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-3">{lm.step5.yourSignature}</label>
                         <SignaturePad onSign={(data) => { setSignature(data); setErrors(p => ({ ...p, signature: false })); }} lang={lang} />
-                        {errors.signature && <p className="text-red-500 text-xs mt-1">Signature requise</p>}
+                        {errors.signature && <p className="text-red-500 text-xs mt-1">{lm.signatureRequired}</p>}
                       </div>
                     </div>
                   )}
