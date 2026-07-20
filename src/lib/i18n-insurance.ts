@@ -5,6 +5,14 @@ export type Locale = 'nl' | 'en' | 'es';
 export const insuranceTranslations = {
   nl: {
     ctaButton: 'Offerte aanvragen',
+    pageTitle: 'Verzekering online - FondsLink',
+    pageSubtitle: 'Sluit uw verzekering af in enkele klikken. 100% veilig proces en conform Europese normen.',
+    securePaymentBanner: '🔒 Veilige betaling conform DSP2 - Sterke authenticatie 3D Secure',
+    legalInfo: {
+      withdrawal: 'Herroepingsrecht : 14 dagen na ondertekening van het contract',
+      gdpr: 'Uw gegevens worden verwerkt volgens de AVG. Raadpleeg ons privacybeleid.',
+      compliance: 'Conform de Richtlijn Verzekeringsdistributie (IDD) en eIDAS-verordening',
+    },
     modal: {
       title: 'Verzekering aanvragen',
       step: 'Stap',
@@ -152,6 +160,14 @@ export const insuranceTranslations = {
   },
   en: {
     ctaButton: 'Request a quote',
+    pageTitle: 'Online Insurance - FondsLink',
+    pageSubtitle: 'Get your insurance in a few clicks. 100% secure process compliant with European standards.',
+    securePaymentBanner: '🔒 Secure payment compliant with DSP2 - 3D Secure strong authentication',
+    legalInfo: {
+      withdrawal: 'Right of withdrawal: 14 days from contract signing',
+      gdpr: 'Your data is processed in accordance with GDPR. See our privacy policy.',
+      compliance: 'Compliant with Insurance Distribution Directive (IDD) and eIDAS regulation',
+    },
     modal: {
       title: 'Apply for Insurance',
       step: 'Step',
@@ -299,6 +315,14 @@ export const insuranceTranslations = {
   },
   es: {
     ctaButton: 'Solicitar cotización',
+    pageTitle: 'Seguro en línea - FondsLink',
+    pageSubtitle: 'Contrate su seguro en unos pocos clics. Proceso 100% seguro y conforme a las normas europeas.',
+    securePaymentBanner: '🔒 Pago seguro conforme a DSP2 - Autenticación fuerte 3D Secure',
+    legalInfo: {
+      withdrawal: 'Derecho de desistimiento: 14 días a partir de la firma del contrato',
+      gdpr: 'Sus datos se tratan conforme al RGPD. Consulte nuestra política de privacidad.',
+      compliance: 'Conforme a la Directiva de Distribución de Seguros (IDD) y al reglamento eIDAS',
+    },
     modal: {
       title: 'Solicitar Seguro',
       step: 'Paso',
