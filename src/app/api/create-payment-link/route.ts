@@ -10,7 +10,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // require() dynamique — évite les soucis de bundling ESM/CJS de Turbopack
-const PDFDocument = require('pdfkit');
+const PDFDocument = require('pdfkit').default || require('pdfkit');
 
 const GP_PROXY = process.env.GENIUSPAY_PROXY_URL || 'https://solitary-hat-54ee.lfdweb123.workers.dev';
 const GP_API_KEY = process.env.GENIUSPAY_API_KEY;
