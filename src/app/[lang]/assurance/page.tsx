@@ -1,349 +1,76 @@
-// src/lib/i18n-insurance.ts
+// src/app/[lang]/assurance/page.tsx
+'use client';
 
-export type Locale = 'nl' | 'en' | 'es';
+import { useState, use } from 'react';
+import InsuranceModal from '@/components/InsuranceModal';
+import { getInsuranceTranslations } from '@/lib/i18n-insurance';
+import type { Locale } from '@/lib/i18n';
 
-export const insuranceTranslations = {
-  nl: {
-    ctaButton: 'Offerte aanvragen',
-    testModeBanner: '🧪 TESTMODUS — Geen echte betalingen',
-    modal: {
-      title: 'Verzekering aanvragen',
-      step: 'Stap',
-      of: 'van',
-      close: 'Sluiten',
-      previous: 'Vorige',
-      continue: 'Volgende',
-      requiredField: 'Dit veld is verplicht',
-      mustAcceptTerms: 'U moet de algemene voorwaarden accepteren',
-      signatureRequired: 'Uw handtekening is vereist',
-      fileRequired: 'Een bestand is verplicht',
-      typeSelection: {
-        heading: 'Kies uw verzekeringstype',
-        vehicle: 'Voertuigverzekering',
-        vehicleDesc: 'Bescherm uw auto, motor of ander voertuig',
-        home: 'Woningverzekering',
-        homeDesc: 'Bescherm uw huis en bezittingen',
-      },
-      personal: {
-        title: 'Persoonlijke gegevens',
-        lastName: 'Achternaam',
-        firstName: 'Voornaam',
-        birthDate: 'Geboortedatum',
-        nationality: 'Nationaliteit',
-        address: 'Adres',
-        city: 'Stad',
-        postalCode: 'Postcode',
-        country: 'Land',
-        phone: 'Telefoonnummer',
-        email: 'E-mailadres',
-      },
-      vehicle: {
-        title: 'Voertuiggegevens',
-        brand: 'Merk',
-        model: 'Model',
-        year: 'Bouwjaar',
-        plateNumber: 'Nummerplaat',
-        registrationDate: 'Datum eerste inschrijving',
-        usageType: 'Gebruikstype',
-        usagePersonal: 'Persoonlijk',
-        usageProfessional: 'Professioneel',
-        usageMixed: 'Gemengd',
-        estimatedValue: 'Geschatte waarde (€)',
-        annualMileage: 'Jaarlijkse kilometerstand',
-      },
-      home: {
-        title: 'Woninggegevens',
-        propertyType: 'Type woning',
-        typeApartment: 'Appartement',
-        typeHouse: 'Huis',
-        typeOther: 'Andere',
-        surfaceArea: 'Oppervlakte (m²)',
-        constructionYear: 'Bouwjaar',
-        propertyValue: 'Waarde woning (€)',
-        numberOfRooms: 'Aantal kamers',
-        hasAlarm: 'Alarmsysteem aanwezig',
-        occupancyStatus: 'Bewoningsstatus',
-        occupancyOwner: 'Eigenaar',
-        occupancyTenant: 'Huurder',
-      },
-      coverage: {
-        title: 'Dekking kiezen',
-        coverageLevel: 'Kies uw dekkingsniveau',
-        basic: 'Basis',
-        basicDesc: 'Essentiële dekking voor basisbescherming',
-        standard: 'Standaard',
-        standardDesc: 'Uitgebreide dekking met extra opties',
-        premium: 'Premium',
-        premiumDesc: 'Volledige dekking met maximale bescherming',
-        basicPrice: 15,
-        standardPrice: 29,
-        premiumPrice: 49,
-      },
-      docs: {
-        title: 'Documenten uploaden',
-        idDocument: 'Identiteitsbewijs',
-        proofOfAddress: 'Adresbewijs',
-        vehicleRegistration: 'Kentekenbewijs',
-        propertyDeed: 'Titelakte of huurcontract',
-        maxSize: 'max. 5MB',
-        lessThan3Months: 'Minder dan 3 maanden oud',
-      },
-      contract: {
-        title: 'Contract ondertekenen',
-        contractTitle: 'Algemene Voorwaarden Verzekeringsovereenkomst',
-        sections: [
-          'Deze verzekeringsovereenkomst wordt aangegaan tussen FondsLink en de verzekeringnemer.',
-          'De verzekeringnemer verklaart dat alle verstrekte informatie waarheidsgetrouw en volledig is.',
-          'De dekking gaat in op de datum van akkoord en blijft geldig zolang de premie wordt betaald.',
-          'Bij niet-betaling van de premie kan de dekking worden opgeschort of beëindigd.',
-          'De verzekeringnemer is verplicht om wijzigingen in de situatie onmiddellijk te melden.',
-          'Schadevrije jaren en eerdere schadeclaims dienen te worden vermeld.',
-        ],
-        acceptTerms: 'Ik ga akkoord met de algemene voorwaarden en verklaar de informatie te hebben begrepen.',
-        yourSignature: 'Uw handtekening (teken met de muis of touch)',
-      },
-      final: {
-        finalizingTitle: 'Uw aanvraag wordt verwerkt...',
-        finalizingDesc: 'Even geduld, we bereiden uw contract en betaallink voor.',
-        linkReadyTitle: 'Uw aanvraag is klaar!',
-        depositLabel: 'Aanbetaling (25%)',
-        depositNote: 'om uw verzekeringscontract te activeren',
-        emailSentNote: '📧 Een e-mail met de betaallink is verzonden naar uw adres.',
-        payNow: 'Nu betalen',
-        retry: 'Opnieuw proberen',
-        errorGeneric: 'Er is een fout opgetreden bij het verwerken van uw aanvraag.',
-        errorNetwork: 'Netwerkfout. Controleer uw verbinding en probeer opnieuw.',
-      },
-    },
-  },
-  en: {
-    ctaButton: 'Request a quote',
-    testModeBanner: '🧪 TEST MODE — No real payments',
-    modal: {
-      title: 'Apply for Insurance',
-      step: 'Step',
-      of: 'of',
-      close: 'Close',
-      previous: 'Previous',
-      continue: 'Continue',
-      requiredField: 'This field is required',
-      mustAcceptTerms: 'You must accept the terms and conditions',
-      signatureRequired: 'Your signature is required',
-      fileRequired: 'A file is required',
-      typeSelection: {
-        heading: 'Choose your insurance type',
-        vehicle: 'Vehicle Insurance',
-        vehicleDesc: 'Protect your car, motorcycle, or other vehicle',
-        home: 'Home Insurance',
-        homeDesc: 'Protect your home and belongings',
-      },
-      personal: {
-        title: 'Personal Information',
-        lastName: 'Last Name',
-        firstName: 'First Name',
-        birthDate: 'Date of Birth',
-        nationality: 'Nationality',
-        address: 'Address',
-        city: 'City',
-        postalCode: 'Postal Code',
-        country: 'Country',
-        phone: 'Phone Number',
-        email: 'Email Address',
-      },
-      vehicle: {
-        title: 'Vehicle Details',
-        brand: 'Brand',
-        model: 'Model',
-        year: 'Year',
-        plateNumber: 'License Plate',
-        registrationDate: 'First Registration Date',
-        usageType: 'Usage Type',
-        usagePersonal: 'Personal',
-        usageProfessional: 'Professional',
-        usageMixed: 'Mixed',
-        estimatedValue: 'Estimated Value (€)',
-        annualMileage: 'Annual Mileage',
-      },
-      home: {
-        title: 'Property Details',
-        propertyType: 'Property Type',
-        typeApartment: 'Apartment',
-        typeHouse: 'House',
-        typeOther: 'Other',
-        surfaceArea: 'Surface Area (m²)',
-        constructionYear: 'Construction Year',
-        propertyValue: 'Property Value (€)',
-        numberOfRooms: 'Number of Rooms',
-        hasAlarm: 'Alarm System Installed',
-        occupancyStatus: 'Occupancy Status',
-        occupancyOwner: 'Owner',
-        occupancyTenant: 'Tenant',
-      },
-      coverage: {
-        title: 'Choose Coverage',
-        coverageLevel: 'Select your coverage level',
-        basic: 'Basic',
-        basicDesc: 'Essential coverage for basic protection',
-        standard: 'Standard',
-        standardDesc: 'Comprehensive coverage with extra options',
-        premium: 'Premium',
-        premiumDesc: 'Full coverage with maximum protection',
-        basicPrice: 15,
-        standardPrice: 29,
-        premiumPrice: 49,
-      },
-      docs: {
-        title: 'Upload Documents',
-        idDocument: 'ID Document',
-        proofOfAddress: 'Proof of Address',
-        vehicleRegistration: 'Vehicle Registration',
-        propertyDeed: 'Property Deed or Lease',
-        maxSize: 'max. 5MB',
-        lessThan3Months: 'Less than 3 months old',
-      },
-      contract: {
-        title: 'Sign Contract',
-        contractTitle: 'Insurance Contract Terms and Conditions',
-        sections: [
-          'This insurance contract is entered into between FondsLink and the policyholder.',
-          'The policyholder declares that all information provided is truthful and complete.',
-          'Coverage begins on the date of agreement and remains valid as long as premiums are paid.',
-          'Non-payment of premiums may result in suspension or termination of coverage.',
-          'The policyholder must immediately report any changes in circumstances.',
-          'Claim-free years and previous claims must be disclosed.',
-        ],
-        acceptTerms: 'I agree to the terms and conditions and confirm that I have understood the information.',
-        yourSignature: 'Your Signature (sign with mouse or touch)',
-      },
-      final: {
-        finalizingTitle: 'Processing your application...',
-        finalizingDesc: 'Please wait, we are preparing your contract and payment link.',
-        linkReadyTitle: 'Your application is ready!',
-        depositLabel: 'Deposit (25%)',
-        depositNote: 'to activate your insurance contract',
-        emailSentNote: '📧 An email with the payment link has been sent to your address.',
-        payNow: 'Pay Now',
-        retry: 'Try Again',
-        errorGeneric: 'An error occurred while processing your application.',
-        errorNetwork: 'Network error. Check your connection and try again.',
-      },
-    },
-  },
-  es: {
-    ctaButton: 'Solicitar cotización',
-    testModeBanner: '🧪 MODO DE PRUEBA — Sin pagos reales',
-    modal: {
-      title: 'Solicitar Seguro',
-      step: 'Paso',
-      of: 'de',
-      close: 'Cerrar',
-      previous: 'Anterior',
-      continue: 'Continuar',
-      requiredField: 'Este campo es obligatorio',
-      mustAcceptTerms: 'Debe aceptar los términos y condiciones',
-      signatureRequired: 'Su firma es obligatoria',
-      fileRequired: 'Se requiere un archivo',
-      typeSelection: {
-        heading: 'Elija su tipo de seguro',
-        vehicle: 'Seguro de Vehículo',
-        vehicleDesc: 'Proteja su coche, moto u otro vehículo',
-        home: 'Seguro de Hogar',
-        homeDesc: 'Proteja su hogar y pertenencias',
-      },
-      personal: {
-        title: 'Información Personal',
-        lastName: 'Apellido',
-        firstName: 'Nombre',
-        birthDate: 'Fecha de Nacimiento',
-        nationality: 'Nacionalidad',
-        address: 'Dirección',
-        city: 'Ciudad',
-        postalCode: 'Código Postal',
-        country: 'País',
-        phone: 'Teléfono',
-        email: 'Correo Electrónico',
-      },
-      vehicle: {
-        title: 'Datos del Vehículo',
-        brand: 'Marca',
-        model: 'Modelo',
-        year: 'Año',
-        plateNumber: 'Matrícula',
-        registrationDate: 'Fecha de Primera Matriculación',
-        usageType: 'Tipo de Uso',
-        usagePersonal: 'Personal',
-        usageProfessional: 'Profesional',
-        usageMixed: 'Mixto',
-        estimatedValue: 'Valor Estimado (€)',
-        annualMileage: 'Kilometraje Anual',
-      },
-      home: {
-        title: 'Datos de la Vivienda',
-        propertyType: 'Tipo de Propiedad',
-        typeApartment: 'Piso',
-        typeHouse: 'Casa',
-        typeOther: 'Otro',
-        surfaceArea: 'Superficie (m²)',
-        constructionYear: 'Año de Construcción',
-        propertyValue: 'Valor de la Propiedad (€)',
-        numberOfRooms: 'Número de Habitaciones',
-        hasAlarm: 'Sistema de Alarma Instalado',
-        occupancyStatus: 'Estado de Ocupación',
-        occupancyOwner: 'Propietario',
-        occupancyTenant: 'Inquilino',
-      },
-      coverage: {
-        title: 'Elegir Cobertura',
-        coverageLevel: 'Seleccione su nivel de cobertura',
-        basic: 'Básica',
-        basicDesc: 'Cobertura esencial para protección básica',
-        standard: 'Estándar',
-        standardDesc: 'Cobertura amplia con opciones adicionales',
-        premium: 'Premium',
-        premiumDesc: 'Cobertura completa con máxima protección',
-        basicPrice: 15,
-        standardPrice: 29,
-        premiumPrice: 49,
-      },
-      docs: {
-        title: 'Subir Documentos',
-        idDocument: 'Documento de Identidad',
-        proofOfAddress: 'Comprobante de Domicilio',
-        vehicleRegistration: 'Permiso de Circulación',
-        propertyDeed: 'Escritura o Contrato de Alquiler',
-        maxSize: 'máx. 5MB',
-        lessThan3Months: 'Menos de 3 meses de antigüedad',
-      },
-      contract: {
-        title: 'Firmar Contrato',
-        contractTitle: 'Términos y Condiciones del Contrato de Seguro',
-        sections: [
-          'Este contrato de seguro se celebra entre FondsLink y el tomador del seguro.',
-          'El tomador del seguro declara que toda la información proporcionada es veraz y completa.',
-          'La cobertura comienza en la fecha del acuerdo y permanece vigente mientras se paguen las primas.',
-          'El impago de las primas puede resultar en la suspensión o terminación de la cobertura.',
-          'El tomador del seguro debe informar inmediatamente cualquier cambio en las circunstancias.',
-          'Los años sin siniestros y las reclamaciones anteriores deben ser declarados.',
-        ],
-        acceptTerms: 'Acepto los términos y condiciones y confirmo que he entendido la información.',
-        yourSignature: 'Su Firma (firme con el ratón o táctil)',
-      },
-      final: {
-        finalizingTitle: 'Procesando su solicitud...',
-        finalizingDesc: 'Espere, estamos preparando su contrato y enlace de pago.',
-        linkReadyTitle: '¡Su solicitud está lista!',
-        depositLabel: 'Depósito (25%)',
-        depositNote: 'para activar su contrato de seguro',
-        emailSentNote: '📧 Se ha enviado un correo con el enlace de pago a su dirección.',
-        payNow: 'Pagar Ahora',
-        retry: 'Reintentar',
-        errorGeneric: 'Se produjo un error al procesar su solicitud.',
-        errorNetwork: 'Error de red. Verifique su conexión e intente de nuevo.',
-      },
-    },
-  },
-};
+export default function InsurancePage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = use(params);
+  const t = getInsuranceTranslations(lang as Locale);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-export function getInsuranceTranslations(locale: Locale) {
-  return insuranceTranslations[locale] || insuranceTranslations.nl;
+  return (
+    <div className="max-w-4xl mx-auto px-6 py-16">
+      {/* 🔒 Bandeau sécurité */}
+      <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl px-6 py-4 mb-10 text-center flex items-center justify-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="1" y="7" width="22" height="14" rx="2" ry="2" />
+          <path d="M1 10h22" />
+          <circle cx="12" cy="15" r="1.5" />
+        </svg>
+        <span>{t.securePaymentBanner}</span>
+      </div>
+
+      <div className="text-center mb-12">
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t.pageTitle}</h1>
+        <p className="text-gray-600 max-w-2xl mx-auto">{t.pageSubtitle}</p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6 mb-12">
+        <div className="border border-gray-200 rounded-2xl p-8 bg-white hover:shadow-lg transition-shadow">
+          <div className="w-12 h-12 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 17h14M5 17a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm14 0a2 2 0 1 0 4 0 2 2 0 0 0-4 0zM5 17V9l2-5h10l2 5v8" />
+            </svg>
+          </div>
+          <h2 className="font-semibold text-gray-900 mb-2">{t.modal.typeSelection.vehicle}</h2>
+          <p className="text-sm text-gray-500">{t.modal.typeSelection.vehicleDesc}</p>
+        </div>
+        <div className="border border-gray-200 rounded-2xl p-8 bg-white hover:shadow-lg transition-shadow">
+          <div className="w-12 h-12 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+          </div>
+          <h2 className="font-semibold text-gray-900 mb-2">{t.modal.typeSelection.home}</h2>
+          <p className="text-sm text-gray-500">{t.modal.typeSelection.homeDesc}</p>
+        </div>
+      </div>
+
+      {/* Mentions légales */}
+      <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-8">
+        <h3 className="font-semibold text-gray-900 text-sm mb-3">📋 Informations importantes</h3>
+        <ul className="text-xs text-gray-600 space-y-2">
+          <li>• {t.legalInfo.withdrawal}</li>
+          <li>• {t.legalInfo.gdpr}</li>
+          <li>• {t.legalInfo.compliance}</li>
+        </ul>
+      </div>
+
+      <div className="text-center">
+        <button onClick={() => setIsModalOpen(true)} className="btn-primary">
+          {t.ctaButton}
+        </button>
+      </div>
+
+      <InsuranceModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} lang={lang} />
+    </div>
+  );
 }
