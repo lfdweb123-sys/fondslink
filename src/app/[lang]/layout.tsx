@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getTranslations, locales, type Locale } from '@/lib/i18n';
 import LoanModal from '@/components/LoanModal';
+import LegalModal from '@/components/LegalModal';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
   const t = getTranslations(lang as Locale);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [openLegal, setOpenLegal] = useState<'privacy' | 'terms' | null>(null);
   const pathname = usePathname();
 
   const getLocalizedPath = (newLang: string) => {
@@ -106,9 +108,23 @@ export default function RootLayout({
               </div>
               <div>
                 <h4 className="font-semibold mb-4 text-[#D4AF37]">{t.footer.legalTitle}</h4>
-                <p className="text-gray-500 text-xs leading-relaxed">
+                <p className="text-gray-500 text-xs leading-relaxed mb-3">
                   &copy; {new Date().getFullYear()} FondsLink. {t.footer.copyright}<br />{t.footer.legal}
                 </p>
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => setOpenLegal('privacy')}
+                    className="text-left text-gray-400 hover:text-white text-xs underline underline-offset-2 transition-colors w-fit"
+                  >
+                    {t.footer.privacyLink}
+                  </button>
+                  <button
+                    onClick={() => setOpenLegal('terms')}
+                    className="text-left text-gray-400 hover:text-white text-xs underline underline-offset-2 transition-colors w-fit"
+                  >
+                    {t.footer.termsLink}
+                  </button>
+                </div>
               </div>
             </div>
             <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
@@ -121,6 +137,20 @@ export default function RootLayout({
           </div>
         </footer>
         <LoanModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} lang={lang} />
+        <LegalModal
+          isOpen={openLegal === 'privacy'}
+          onClose={() => setOpenLegal(null)}
+          title={t.legal.privacy.title}
+          sections={t.legal.privacy.sections}
+          closeLabel={t.legal.closeLabel}
+        />
+        <LegalModal
+          isOpen={openLegal === 'terms'}
+          onClose={() => setOpenLegal(null)}
+          title={t.legal.terms.title}
+          sections={t.legal.terms.sections}
+          closeLabel={t.legal.closeLabel}
+        />
       </body>
     </html>
   );
