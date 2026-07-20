@@ -184,7 +184,7 @@ const translations: Record<Locale, Translations> = {
       addressLabel: 'Adres',
       availabilityLabel: 'Beschikbaarheid',
       phoneValue: '+31 (0)20 123 45 67',
-      emailValue: 'contact@fondslink.nl',
+      emailValue: 'contact@fondslink.com',
       addressValue: 'Amsterdam, Nederland',
       availabilityValue: 'Ma-Vr: 09:00 - 18:00',
       subjectOptions: {
