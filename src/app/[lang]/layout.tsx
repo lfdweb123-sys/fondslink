@@ -51,6 +51,9 @@ export default function RootLayout({
                 <Link href={`/${lang}`} className={`text-sm font-medium transition-colors ${pathname === `/${lang}` ? 'text-[#D4AF37]' : 'text-gray-700 hover:text-[#D4AF37]'}`}>
                   {t.nav.home}
                 </Link>
+                <Link href={`/${lang}/assurance`} className={`text-sm font-medium transition-colors ${pathname.includes('/assurance') ? 'text-[#D4AF37]' : 'text-gray-700 hover:text-[#D4AF37]'}`}>
+                  Assurance
+                </Link>
                 <Link href={`/${lang}/contact`} className={`text-sm font-medium transition-colors ${pathname.includes('/contact') ? 'text-[#D4AF37]' : 'text-gray-700 hover:text-[#D4AF37]'}`}>
                   {t.nav.contact}
                 </Link>
@@ -82,6 +85,7 @@ export default function RootLayout({
             <div className="md:hidden border-t border-gray-100 bg-white">
               <div className="max-w-7xl mx-auto px-6 py-4 space-y-4">
                 <Link href={`/${lang}`} onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-gray-700 hover:text-[#D4AF37] transition-colors py-2">{t.nav.home}</Link>
+                <Link href={`/${lang}/assurance`} onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-gray-700 hover:text-[#D4AF37] transition-colors py-2">Assurance</Link>
                 <Link href={`/${lang}/contact`} onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-gray-700 hover:text-[#D4AF37] transition-colors py-2">{t.nav.contact}</Link>
                 <div className="flex gap-2 py-2">
                   {locales.map((locale) => (
@@ -130,6 +134,7 @@ export default function RootLayout({
             <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
               <div className="flex gap-6 text-sm text-gray-400 mb-4 md:mb-0">
                 <Link href={`/${lang}`} className="hover:text-white transition-colors">{t.nav.home}</Link>
+                <Link href={`/${lang}/assurance`} className="hover:text-white transition-colors">Assurance</Link>
                 <Link href={`/${lang}/contact`} className="hover:text-white transition-colors">{t.nav.contact}</Link>
               </div>
               <p className="text-gray-500 text-xs">FondsLink B.V. - KVK 12345678 - AFM vergunning nr. 12012345</p>
