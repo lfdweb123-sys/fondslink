@@ -185,6 +185,12 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
   // Step 5
   const [acceptTerms, setAcceptTerms] = useState(false);
 
+  // Step 6 — génération du lien de paiement
+  const [paymentUrl, setPaymentUrl] = useState('');
+  const [depositAmount, setDepositAmount] = useState<number | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handleEsc);
@@ -195,6 +201,47 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
     if (isOpen) { document.body.style.overflow = 'hidden'; } else { document.body.style.overflow = 'unset'; }
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
+
+  const submitApplication = async () => {
+    setSubmitting(true);
+    setSubmitError('');
+    try {
+      const applicationData = {
+        lastName, firstName, birthDate, nationality, address, city, postalCode, country, phone, email,
+        amount, currency, duration, monthlyIncome, profession, employer,
+        bankName, iban, bic, accountHolder,
+        signature,
+      };
+
+      const res = await fetch('/api/create-payment-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ applicationData, lang }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        setSubmitError(data.message || lm.step6.errorGeneric);
+        setSubmitting(false);
+        return;
+      }
+
+      setPaymentUrl(data.paymentUrl);
+      setDepositAmount(data.depositAmount);
+    } catch (e) {
+      setSubmitError(lm.step6.errorNetwork);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    if (step === 6 && !paymentUrl && !submitting) {
+      submitApplication();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   if (!isOpen) return null;
 
@@ -221,7 +268,6 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
       if (!duration || Number(duration) <= 0) e.duration = true;
       if (!monthlyIncome || Number(monthlyIncome) < 0) e.monthlyIncome = true;
       if (!profession.trim()) e.profession = true;
-      // employer est optionnel
     }
     if (step === 3) {
       if (!bankName.trim()) e.bankName = true;
@@ -392,20 +438,54 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
                       <div className="w-20 h-20 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-6">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-4">{lm.step6.finalizingTitle}</h3>
-                      <p className="text-gray-600 mb-8 max-w-md mx-auto">{lm.step6.finalizingDesc}</p>
-                      <div id="geniuspay-container" className="max-w-md mx-auto" />
+
+                      {submitting && (
+                        <>
+                          <h3 className="text-2xl font-bold text-gray-900 mb-4">{lm.step6.finalizingTitle}</h3>
+                          <p className="text-gray-600 mb-8 max-w-md mx-auto">{lm.step6.finalizingDesc}</p>
+                          <div className="flex justify-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-bounce [animation-delay:-0.3s]"></span>
+                            <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-bounce [animation-delay:-0.15s]"></span>
+                            <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-bounce"></span>
+                          </div>
+                        </>
+                      )}
+
+                      {!submitting && submitError && (
+                        <>
+                          <p className="text-red-500 mb-6">{submitError}</p>
+                          <button onClick={submitApplication} className="btn-primary">{lm.step6.retry}</button>
+                        </>
+                      )}
+
+                      {!submitting && !submitError && paymentUrl && (
+                        <>
+                          <h3 className="text-2xl font-bold text-gray-900 mb-2">{lm.step6.linkReadyTitle}</h3>
+                          <p className="text-gray-600 mb-2 max-w-md mx-auto">
+                            {lm.step6.depositLabel}{' '}
+                            <span className="font-bold text-[#D4AF37]">{depositAmount} {currency}</span>{' '}
+                            {lm.step6.depositNote}
+                          </p>
+                          <p className="text-sm text-gray-500 mb-8">{lm.step6.emailSentNote}</p>
+                          <a
+                            href={paymentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-primary inline-block"
+                          >
+                            {lm.step6.payNow} →
+                          </a>
+                        </>
+                      )}
                     </div>
                   )}
                 </motion.div>
               </AnimatePresence>
             </div>
             <div className="sticky bottom-0 bg-white border-t px-8 py-6 flex justify-between rounded-b-2xl">
-              <button onClick={handlePrev} disabled={step === 1} className="px-6 py-3 text-gray-500 hover:text-black disabled:opacity-30 transition-colors font-medium">← {lm.previous}</button>
-              {step < 6 ? (
+              <button onClick={handlePrev} disabled={step === 1 || step === 6} className="px-6 py-3 text-gray-500 hover:text-black disabled:opacity-30 transition-colors font-medium">← {lm.previous}</button>
+              {step < 6 && (
                 <button onClick={handleNext} className="btn-primary">{lm.continue} →</button>
-              ) : (
-                <button disabled className="btn-primary opacity-50 cursor-not-allowed">{lm.paymentWaiting}</button>
               )}
             </div>
           </motion.div>
