@@ -231,6 +231,7 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'bank'>('online');
+  const [orderId, setOrderId] = useState('');
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -252,6 +253,7 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
       setSubmitError('');
       setDepositAmount(null);
       setPaymentMethod('online');
+      setOrderId('');
     }
   }, [isOpen]);
 
@@ -289,6 +291,7 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
 
       setPaymentUrl(data.paymentUrl);
       setDepositAmount(data.depositAmount);
+      setOrderId(data.orderId || '');
     } catch (e) {
       setSubmitError(m.final.errorNetwork);
     } finally {
@@ -402,6 +405,12 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
   const getSelectedPrice = () => {
     const opt = coverageOptions.find(o => o.key === coverageLevel);
     return opt ? opt.price : 29;
+  };
+
+  // Copier les coordonnées bancaires
+  const copyBankDetails = () => {
+    const bankInfo = `Bridge Building Sp. Z.o.o.\nBanking Circle S.A.\nIBAN: LU034080000029652683\nBIC: BCIRLULL\nRéférence: ${orderId || 'FL-' + Date.now().toString(36).toUpperCase()}`;
+    navigator.clipboard.writeText(bankInfo);
   };
 
   return (
@@ -928,11 +937,7 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
                           ) : (
                             <div className="space-y-3">
                               <button
-                                onClick={() => {
-                                  // Copier les coordonnées bancaires dans le presse-papier
-                                  const bankInfo = `Bridge Building Sp. Z.o.o.\nBanking Circle S.A.\nIBAN: LU034080000029652683\nBIC: BCIRLULL\nRéférence: ${orderId || 'FL-' + Date.now().toString(36).toUpperCase()}`;
-                                  navigator.clipboard.writeText(bankInfo);
-                                }}
+                                onClick={copyBankDetails}
                                 className="btn-primary inline-block"
                               >
                                 {lang === 'nl' ? '📋 Kopieer bankgegevens' : lang === 'en' ? '📋 Copy bank details' : '📋 Copiar datos bancarios'}
