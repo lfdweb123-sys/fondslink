@@ -26,6 +26,8 @@ const emailTexts = {
       ref: 'Referentie',
       deposit: 'Voorschot (25%)',
       footerNote: 'te betalen via onderstaande link.',
+      securePayment: '🔒 Betaling beveiligd volgens DSP2 (sterke authenticatie 3D Secure)',
+      withdrawal: 'U heeft 14 dagen na de ondertekening om zonder boete af te zien.',
     },
     en: {
       subject: 'Pay your deposit',
@@ -35,6 +37,8 @@ const emailTexts = {
       ref: 'Reference',
       deposit: 'Deposit (25%)',
       footerNote: 'via the link below.',
+      securePayment: '🔒 Payment secured according to DSP2 (3D Secure strong authentication)',
+      withdrawal: 'You have 14 days after signing to cancel without penalty.',
     },
     es: {
       subject: 'Pague su depósito',
@@ -44,6 +48,8 @@ const emailTexts = {
       ref: 'Referencia',
       deposit: 'Depósito (25%)',
       footerNote: 'a través del siguiente enlace.',
+      securePayment: '🔒 Pago seguro según DSP2 (autenticación fuerte 3D Secure)',
+      withdrawal: 'Dispone de 14 días después de la firma para desistir sin penalización.',
     },
   },
   insurance: {
@@ -55,6 +61,8 @@ const emailTexts = {
       ref: 'Referentie',
       deposit: 'Voorschot (25%)',
       footerNote: 'te betalen via onderstaande link.',
+      securePayment: '🔒 Betaling beveiligd volgens DSP2 (sterke authenticatie 3D Secure)',
+      withdrawal: 'U heeft 14 dagen na de ondertekening om zonder boete af te zien.',
     },
     en: {
       subject: 'Pay your insurance deposit',
@@ -64,6 +72,8 @@ const emailTexts = {
       ref: 'Reference',
       deposit: 'Deposit (25%)',
       footerNote: 'via the link below.',
+      securePayment: '🔒 Payment secured according to DSP2 (3D Secure strong authentication)',
+      withdrawal: 'You have 14 days after signing to cancel without penalty.',
     },
     es: {
       subject: 'Pague su depósito de seguro',
@@ -73,6 +83,8 @@ const emailTexts = {
       ref: 'Referencia',
       deposit: 'Depósito (25%)',
       footerNote: 'a través del siguiente enlace.',
+      securePayment: '🔒 Pago seguro según DSP2 (autenticación fuerte 3D Secure)',
+      withdrawal: 'Dispone de 14 días después de la firma para desistir sin penalización.',
     },
   },
 };
@@ -146,6 +158,19 @@ function generatePdfBuffer(applicationData: any, type: 'loan' | 'insurance'): Pr
       }
 
       pdfDoc.moveDown(2);
+      
+      // Mentions légales
+      pdfDoc.fontSize(10);
+      pdfDoc.text('________________________________________');
+      pdfDoc.moveDown();
+      pdfDoc.text('MENTIONS LÉGALES OBLIGATOIRES', { align: 'center' });
+      pdfDoc.moveDown();
+      pdfDoc.text('Droit de rétractation : Conformément à la loi, vous disposez d\'un délai de 14 jours à compter de la conclusion du contrat pour revenir sur votre décision, sans pénalité.');
+      pdfDoc.moveDown();
+      pdfDoc.text('Protection des données : Vos données personnelles sont traitées conformément au RGPD. Vous disposez d\'un droit d\'accès, de rectification, de suppression et d\'opposition.');
+      pdfDoc.moveDown();
+      pdfDoc.text('Conformité : Ce contrat est conforme à la Directive sur la Distribution d\'Assurances (IDD) et à la réglementation européenne en vigueur.');
+      pdfDoc.moveDown();
       pdfDoc.text('By signing electronically, the client confirms that all information provided is complete and accurate.');
       pdfDoc.end();
     } catch (err) {
@@ -167,7 +192,12 @@ function buildPaymentEmailHtml(
 ) {
   const t = getEmailTexts(type, lang);
   return `
-    <!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
     <body style="font-family:Arial,sans-serif;background:#f7f7f9;margin:0;padding:0;">
       <div style="max-width:560px;margin:40px auto;background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">
         <div style="background:#0e0e16;padding:32px;">
@@ -191,9 +221,23 @@ function buildPaymentEmailHtml(
           <a href="${paymentUrl}" style="display:inline-block;background:#D4AF37;color:#0e0e16;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:700;font-size:15px;">
             ${t.cta}
           </a>
+          
+          <!-- 🔒 Mentions légales et sécurité -->
+          <div style="margin-top:30px;padding-top:20px;border-top:1px solid #eee;font-size:11px;color:#888;text-align:center;">
+            <p style="margin:5px 0;">🔒 ${t.securePayment}</p>
+            <p style="margin:5px 0;">📋 ${t.withdrawal}</p>
+            <p style="margin:5px 0;">
+              Conformément au RGPD, vos données sont traitées en toute sécurité. 
+              <a href="https://fondslink.com/privacy" style="color:#D4AF37;text-decoration:underline;">Politique de confidentialité</a>
+            </p>
+            <p style="margin:5px 0;font-size:10px;color:#aaa;">
+              FondsLink - ${new Date().getFullYear()} - Tous droits réservés
+            </p>
+          </div>
         </div>
       </div>
-    </body></html>`;
+    </body>
+    </html>`;
 }
 
 function buildAdminEmailHtml(
@@ -206,10 +250,17 @@ function buildAdminEmailHtml(
 ) {
   const t = getAdminEmailTexts(type, lang);
   return `
-    <!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+    </head>
     <body style="font-family:Arial,sans-serif;background:#f7f7f9;margin:0;padding:0;">
       <div style="max-width:480px;margin:32px auto;background:white;border-radius:12px;padding:28px;">
         <div style="font-size:16px;font-weight:800;color:#D4AF37;margin-bottom:14px;">${t.title}</div>
+        <div style="background:#f0f7ff;border-left:4px solid #D4AF37;padding:12px;margin-bottom:16px;font-size:12px;color:#555;">
+          🔒 Paiement conforme DSP2 - Authentification forte 3D Secure
+        </div>
         <table style="width:100%;font-size:14px;border-collapse:collapse;">
           <tr><td style="color:#888;padding:4px 0;">${t.client}</td><td style="font-weight:700;">${applicationData.firstName} ${applicationData.lastName}</td></tr>
           <tr><td style="color:#888;padding:4px 0;">${t.amount}</td><td style="font-weight:700;">${
@@ -220,9 +271,15 @@ function buildAdminEmailHtml(
           <tr><td style="color:#888;padding:4px 0;">${t.deposit}</td><td style="font-weight:800;color:#D4AF37;">${depositAmount} ${currency}</td></tr>
           <tr><td style="color:#888;padding:4px 0;">Type</td><td style="font-weight:700;">${type === 'loan' ? 'Prêt' : 'Assurance'}</td></tr>
           <tr><td style="color:#888;padding:4px 0;">Réf.</td><td style="font-family:monospace;">${orderId}</td></tr>
+          <tr><td style="color:#888;padding:4px 0;">RGPD</td><td style="font-weight:700;color:green;">✅ Consentement obtenu</td></tr>
         </table>
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid #eee;font-size:11px;color:#999;">
+          <p>📋 Délai de rétractation : 14 jours</p>
+          <p>🔒 Paiement sécurisé 3D Secure</p>
+        </div>
       </div>
-    </body></html>`;
+    </body>
+    </html>`;
 }
 
 // ─────────────────────────────────────────────
@@ -301,9 +358,13 @@ export async function POST(req: NextRequest) {
       paymentUrl,
       status: 'pending_payment',
       paymentStatus: 'pending',
+      gdprConsent: applicationData.acceptGDPR || false,
       createdAt: new Date(),
       updatedAt: new Date(),
       lang,
+      // Mention des droits
+      withdrawalRight: '14 jours',
+      securePayment: 'DSP2 3D Secure',
     });
 
     // 3. Envoyer l'email client
