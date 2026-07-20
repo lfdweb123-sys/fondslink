@@ -13,7 +13,7 @@ interface Props {
 }
 
 // Sélecteur de date personnalisé professionnel
-function DatePicker({ label, value, onChange, lang }: { label: string; value: string; onChange: (val: string) => void; lang: string }) {
+function DatePicker({ label, value, onChange, lang, error }: { label: string; value: string; onChange: (val: string) => void; lang: string; error?: boolean }) {
   const [day, setDay] = useState('');
   const [month, setMonth] = useState('');
   const [year, setYear] = useState('');
@@ -60,7 +60,7 @@ function DatePicker({ label, value, onChange, lang }: { label: string; value: st
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="input-field text-left flex items-center justify-between"
+        className={`input-field text-left flex items-center justify-between ${error ? 'border-red-500 focus:ring-red-500' : ''}`}
       >
         <span className={value ? 'text-gray-900' : 'text-gray-400'}>
           {value ? new Date(value).toLocaleDateString(lang === 'nl' ? 'nl-NL' : lang === 'en' ? 'en-US' : 'es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : label}
@@ -72,6 +72,7 @@ function DatePicker({ label, value, onChange, lang }: { label: string; value: st
           <line x1="3" y1="10" x2="21" y2="10"></line>
         </svg>
       </button>
+      {error && <p className="text-red-500 text-xs mt-1">{lang === 'nl' ? 'Verplicht veld' : lang === 'en' ? 'Required field' : 'Campo requerido'}</p>}
 
       {isOpen && (
         <div className="absolute z-20 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl p-4 w-full min-w-[300px]">
@@ -120,11 +121,69 @@ function DatePicker({ label, value, onChange, lang }: { label: string; value: st
   );
 }
 
+// Champ texte contrôlé avec affichage d'erreur
+function Field({
+  label, value, onChange, error, type = 'text', placeholder, className = '', min, max,
+}: {
+  label: string; value: string; onChange: (v: string) => void; error?: boolean;
+  type?: string; placeholder?: string; className?: string; min?: string; max?: string;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">{label} *</label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        min={min}
+        max={max}
+        className={`input-field ${className} ${error ? 'border-red-500 focus:ring-red-500' : ''}`}
+      />
+      {error && <p className="text-red-500 text-xs mt-1">Champ requis</p>}
+    </div>
+  );
+}
+
 export default function LoanModal({ isOpen, onClose, lang }: Props) {
   const [step, setStep] = useState(1);
   const [signature, setSignature] = useState<string>('');
-  const [birthDate, setBirthDate] = useState('');
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
   const t = getTranslations(lang as Locale);
+
+  // Step 1
+  const [lastName, setLastName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [nationality, setNationality] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [country, setCountry] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+
+  // Step 2
+  const [amount, setAmount] = useState('');
+  const [currency, setCurrency] = useState('EUR');
+  const [duration, setDuration] = useState('');
+  const [monthlyIncome, setMonthlyIncome] = useState('');
+  const [profession, setProfession] = useState('');
+  const [employer, setEmployer] = useState('');
+
+  // Step 3
+  const [bankName, setBankName] = useState('');
+  const [iban, setIban] = useState('');
+  const [bic, setBic] = useState('');
+  const [accountHolder, setAccountHolder] = useState('');
+
+  // Step 4
+  const [idDocument, setIdDocument] = useState<File | null>(null);
+  const [proofOfAddress, setProofOfAddress] = useState<File | null>(null);
+  const [payslip, setPayslip] = useState<File | null>(null);
+
+  // Step 5
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -141,6 +200,67 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
 
   const steps = [t.form.personal, t.form.financial, t.form.bank, t.form.docs, t.form.contract, t.form.payment];
   const lm = t.loanModal;
+
+  // Validation par étape : renvoie la liste des champs en erreur
+  const validateStep = (): Record<string, boolean> => {
+    const e: Record<string, boolean> = {};
+    if (step === 1) {
+      if (!lastName.trim()) e.lastName = true;
+      if (!firstName.trim()) e.firstName = true;
+      if (!birthDate.trim()) e.birthDate = true;
+      if (!nationality.trim()) e.nationality = true;
+      if (!address.trim()) e.address = true;
+      if (!city.trim()) e.city = true;
+      if (!postalCode.trim()) e.postalCode = true;
+      if (!country.trim()) e.country = true;
+      if (!phone.trim()) e.phone = true;
+      if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = true;
+    }
+    if (step === 2) {
+      if (!amount || Number(amount) <= 0) e.amount = true;
+      if (!duration || Number(duration) <= 0) e.duration = true;
+      if (!monthlyIncome || Number(monthlyIncome) < 0) e.monthlyIncome = true;
+      if (!profession.trim()) e.profession = true;
+      // employer est optionnel
+    }
+    if (step === 3) {
+      if (!bankName.trim()) e.bankName = true;
+      if (!iban.trim()) e.iban = true;
+      if (!bic.trim()) e.bic = true;
+      if (!accountHolder.trim()) e.accountHolder = true;
+    }
+    if (step === 4) {
+      if (!idDocument) e.idDocument = true;
+      if (!proofOfAddress) e.proofOfAddress = true;
+      if (!payslip) e.payslip = true;
+    }
+    if (step === 5) {
+      if (!acceptTerms) e.acceptTerms = true;
+      if (!signature) e.signature = true;
+    }
+    return e;
+  };
+
+  const handleNext = () => {
+    const stepErrors = validateStep();
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      return;
+    }
+    setErrors({});
+    setStep(s => Math.min(6, s + 1));
+  };
+
+  const handlePrev = () => {
+    setErrors({});
+    setStep(s => Math.max(1, s - 1));
+  };
+
+  const handleFileChange = (setter: (f: File | null) => void, field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setter(file);
+    if (file) setErrors(prev => ({ ...prev, [field]: false }));
+  };
 
   return (
     <AnimatePresence>
@@ -162,44 +282,21 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
                 <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
                   {step === 1 && (
                     <div className="grid md:grid-cols-2 gap-6">
+                      <Field label={lm.step1.lastName} value={lastName} onChange={(v) => { setLastName(v); setErrors(p => ({ ...p, lastName: false })); }} placeholder={lm.step1.lastName} error={errors.lastName} />
+                      <Field label={lm.step1.firstName} value={firstName} onChange={(v) => { setFirstName(v); setErrors(p => ({ ...p, firstName: false })); }} placeholder={lm.step1.firstName} error={errors.firstName} />
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.lastName} *</label>
-                        <input type="text" placeholder={lm.step1.lastName} className="input-field" required />
+                        <DatePicker label={lm.step1.birthDate} value={birthDate} onChange={(v) => { setBirthDate(v); setErrors(p => ({ ...p, birthDate: false })); }} lang={lang} error={errors.birthDate} />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.firstName} *</label>
-                        <input type="text" placeholder={lm.step1.firstName} className="input-field" required />
-                      </div>
-                      <div>
-                        <DatePicker label={lm.step1.birthDate} value={birthDate} onChange={setBirthDate} lang={lang} />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.nationality} *</label>
-                        <input type="text" placeholder={lm.step1.nationality} className="input-field" required />
-                      </div>
+                      <Field label={lm.step1.nationality} value={nationality} onChange={(v) => { setNationality(v); setErrors(p => ({ ...p, nationality: false })); }} placeholder={lm.step1.nationality} error={errors.nationality} />
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.address} *</label>
-                        <input type="text" placeholder={lm.step1.address} className="input-field" required />
+                        <Field label={lm.step1.address} value={address} onChange={(v) => { setAddress(v); setErrors(p => ({ ...p, address: false })); }} placeholder={lm.step1.address} error={errors.address} />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.city} *</label>
-                        <input type="text" placeholder={lm.step1.city} className="input-field" required />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.postalCode} *</label>
-                        <input type="text" placeholder={lm.step1.postalCode} className="input-field" required />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.country} *</label>
-                        <input type="text" placeholder={lm.step1.country} className="input-field" required />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.phone} *</label>
-                        <input type="tel" placeholder={lm.step1.phone} className="input-field" required />
-                      </div>
+                      <Field label={lm.step1.city} value={city} onChange={(v) => { setCity(v); setErrors(p => ({ ...p, city: false })); }} placeholder={lm.step1.city} error={errors.city} />
+                      <Field label={lm.step1.postalCode} value={postalCode} onChange={(v) => { setPostalCode(v); setErrors(p => ({ ...p, postalCode: false })); }} placeholder={lm.step1.postalCode} error={errors.postalCode} />
+                      <Field label={lm.step1.country} value={country} onChange={(v) => { setCountry(v); setErrors(p => ({ ...p, country: false })); }} placeholder={lm.step1.country} error={errors.country} />
+                      <Field label={lm.step1.phone} value={phone} onChange={(v) => { setPhone(v); setErrors(p => ({ ...p, phone: false })); }} type="tel" placeholder={lm.step1.phone} error={errors.phone} />
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.email} *</label>
-                        <input type="email" placeholder={lm.step1.email} className="input-field" required />
+                        <Field label={lm.step1.email} value={email} onChange={(v) => { setEmail(v); setErrors(p => ({ ...p, email: false })); }} type="email" placeholder={lm.step1.email} error={errors.email} />
                       </div>
                     </div>
                   )}
@@ -208,64 +305,60 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step2.amountRequested} *</label>
                         <div className="flex gap-2">
-                          <input type="number" className="input-field flex-1" placeholder="0" min="0" required />
-                          <select className="input-field w-24">
+                          <input
+                            type="number"
+                            value={amount}
+                            onChange={(e) => { setAmount(e.target.value); setErrors(p => ({ ...p, amount: false })); }}
+                            className={`input-field flex-1 ${errors.amount ? 'border-red-500 focus:ring-red-500' : ''}`}
+                            placeholder="0"
+                            min="0"
+                          />
+                          <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="input-field w-24">
                             <option>EUR</option>
                             <option>USD</option>
                             <option>GBP</option>
                           </select>
                         </div>
+                        {errors.amount && <p className="text-red-500 text-xs mt-1">Champ requis</p>}
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step2.duration} *</label>
-                        <input type="number" placeholder="12" className="input-field" min="1" max="360" required />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step2.monthlyIncome} *</label>
-                        <input type="number" placeholder="0" className="input-field" min="0" required />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step2.profession} *</label>
-                        <input type="text" placeholder={lm.step2.profession} className="input-field" required />
-                      </div>
+                      <Field label={lm.step2.duration} value={duration} onChange={(v) => { setDuration(v); setErrors(p => ({ ...p, duration: false })); }} type="number" placeholder="12" min="1" max="360" error={errors.duration} />
+                      <Field label={lm.step2.monthlyIncome} value={monthlyIncome} onChange={(v) => { setMonthlyIncome(v); setErrors(p => ({ ...p, monthlyIncome: false })); }} type="number" placeholder="0" min="0" error={errors.monthlyIncome} />
+                      <Field label={lm.step2.profession} value={profession} onChange={(v) => { setProfession(v); setErrors(p => ({ ...p, profession: false })); }} placeholder={lm.step2.profession} error={errors.profession} />
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step2.employer}</label>
-                        <input type="text" placeholder={lm.step2.employer} className="input-field" />
+                        <input type="text" value={employer} onChange={(e) => setEmployer(e.target.value)} placeholder={lm.step2.employer} className="input-field" />
                       </div>
                     </div>
                   )}
                   {step === 3 && (
                     <div className="space-y-6 max-w-md mx-auto">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step3.bankName} *</label>
-                        <input type="text" placeholder={lm.step3.bankName} className="input-field" required />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step3.iban} *</label>
-                        <input type="text" placeholder={lm.step3.iban} className="input-field uppercase" required />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step3.bic} *</label>
-                        <input type="text" placeholder={lm.step3.bic} className="input-field uppercase" required />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step3.accountHolder} *</label>
-                        <input type="text" placeholder={lm.step3.accountHolder} className="input-field" required />
-                      </div>
+                      <Field label={lm.step3.bankName} value={bankName} onChange={(v) => { setBankName(v); setErrors(p => ({ ...p, bankName: false })); }} placeholder={lm.step3.bankName} error={errors.bankName} />
+                      <Field label={lm.step3.iban} value={iban} onChange={(v) => { setIban(v.toUpperCase()); setErrors(p => ({ ...p, iban: false })); }} placeholder={lm.step3.iban} className="uppercase" error={errors.iban} />
+                      <Field label={lm.step3.bic} value={bic} onChange={(v) => { setBic(v.toUpperCase()); setErrors(p => ({ ...p, bic: false })); }} placeholder={lm.step3.bic} className="uppercase" error={errors.bic} />
+                      <Field label={lm.step3.accountHolder} value={accountHolder} onChange={(v) => { setAccountHolder(v); setErrors(p => ({ ...p, accountHolder: false })); }} placeholder={lm.step3.accountHolder} error={errors.accountHolder} />
                     </div>
                   )}
                   {step === 4 && (
                     <div className="space-y-6 max-w-md mx-auto">
-                      {[{ t: lm.step4.idDocument, s: `PDF, JPG (${lm.step4.maxSize})` }, { t: lm.step4.proofOfAddress, s: lm.step4.lessThan3Months }, { t: lm.step4.payslip, s: lm.step4.last3Months }].map((f, i) => (
-                        <div key={i} className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#D4AF37] transition-colors cursor-pointer bg-gray-50 hover:bg-white">
+                      {[
+                        { t: lm.step4.idDocument, s: `PDF, JPG (${lm.step4.maxSize})`, field: 'idDocument', file: idDocument, setter: setIdDocument },
+                        { t: lm.step4.proofOfAddress, s: lm.step4.lessThan3Months, field: 'proofOfAddress', file: proofOfAddress, setter: setProofOfAddress },
+                        { t: lm.step4.payslip, s: lm.step4.last3Months, field: 'payslip', file: payslip, setter: setPayslip },
+                      ].map((f, i) => (
+                        <label
+                          key={i}
+                          className={`block border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer bg-gray-50 hover:bg-white ${errors[f.field] ? 'border-red-500' : 'border-gray-300 hover:border-[#D4AF37]'}`}
+                        >
+                          <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={handleFileChange(f.setter, f.field)} />
                           <div className="w-12 h-12 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-4">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               {i === 0 ? <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></> : i === 1 ? <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></> : <><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="6" y1="9" x2="18" y2="9"></line><line x1="6" y1="13" x2="18" y2="13"></line><line x1="6" y1="17" x2="12" y2="17"></line></>}
                             </svg>
                           </div>
                           <p className="font-medium text-gray-900">{f.t} *</p>
-                          <p className="text-xs text-gray-500 mt-2">{f.s}</p>
-                        </div>
+                          <p className="text-xs text-gray-500 mt-2">{f.file ? f.file.name : f.s}</p>
+                          {errors[f.field] && <p className="text-red-500 text-xs mt-2">Fichier requis</p>}
+                        </label>
                       ))}
                     </div>
                   )}
@@ -275,13 +368,22 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
                         <h3 className="font-bold mb-4 text-center text-gray-900">{lm.step5.contractTitle}</h3>
                         {lm.step5.sections.map((s, i) => <p key={i} className="mb-4 text-gray-700">{s}</p>)}
                       </div>
-                      <label className="flex items-start gap-3 cursor-pointer p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <input type="checkbox" className="mt-1 w-5 h-5 accent-[#D4AF37]" />
-                        <span className="text-sm text-gray-700">{lm.step5.acceptTerms}</span>
-                      </label>
+                      <div>
+                        <label className={`flex items-start gap-3 cursor-pointer p-4 rounded-lg transition-colors ${errors.acceptTerms ? 'bg-red-50 border border-red-300' : 'bg-gray-50 hover:bg-gray-100'}`}>
+                          <input
+                            type="checkbox"
+                            checked={acceptTerms}
+                            onChange={(e) => { setAcceptTerms(e.target.checked); setErrors(p => ({ ...p, acceptTerms: false })); }}
+                            className="mt-1 w-5 h-5 accent-[#D4AF37]"
+                          />
+                          <span className="text-sm text-gray-700">{lm.step5.acceptTerms}</span>
+                        </label>
+                        {errors.acceptTerms && <p className="text-red-500 text-xs mt-1">Vous devez accepter les conditions</p>}
+                      </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-3">{lm.step5.yourSignature}</label>
-                        <SignaturePad onSign={(data) => setSignature(data)} lang={lang} />
+                        <SignaturePad onSign={(data) => { setSignature(data); setErrors(p => ({ ...p, signature: false })); }} lang={lang} />
+                        {errors.signature && <p className="text-red-500 text-xs mt-1">Signature requise</p>}
                       </div>
                     </div>
                   )}
@@ -299,9 +401,9 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
               </AnimatePresence>
             </div>
             <div className="sticky bottom-0 bg-white border-t px-8 py-6 flex justify-between rounded-b-2xl">
-              <button onClick={() => setStep(s => Math.max(1, s - 1))} disabled={step === 1} className="px-6 py-3 text-gray-500 hover:text-black disabled:opacity-30 transition-colors font-medium">← {lm.previous}</button>
+              <button onClick={handlePrev} disabled={step === 1} className="px-6 py-3 text-gray-500 hover:text-black disabled:opacity-30 transition-colors font-medium">← {lm.previous}</button>
               {step < 6 ? (
-                <button onClick={() => setStep(s => Math.min(6, s + 1))} className="btn-primary">{lm.continue} →</button>
+                <button onClick={handleNext} className="btn-primary">{lm.continue} →</button>
               ) : (
                 <button disabled className="btn-primary opacity-50 cursor-not-allowed">{lm.paymentWaiting}</button>
               )}
