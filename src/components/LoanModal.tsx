@@ -190,6 +190,7 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
   const [depositAmount, setDepositAmount] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'online' | 'bank'>('online');
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -202,6 +203,12 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      setPaymentMethod('online');
+    }
+  }, [isOpen]);
+
   const submitApplication = async () => {
     setSubmitting(true);
     setSubmitError('');
@@ -211,6 +218,7 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
         amount, currency, duration, monthlyIncome, profession, employer,
         bankName, iban, bic, accountHolder,
         signature,
+        paymentMethod,
       };
 
       const res = await fetch('/api/create-payment-link', {
@@ -306,6 +314,12 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
     const file = e.target.files?.[0] || null;
     setter(file);
     if (file) setErrors(prev => ({ ...prev, [field]: false }));
+  };
+
+  // Fonction pour copier les coordonnées bancaires
+  const copyBankDetails = () => {
+    const bankInfo = `Bridge Building Sp. Z.o.o.\nBanking Circle S.A.\nIBAN: LU034080000029652683\nBIC: BCIRLULL`;
+    navigator.clipboard.writeText(bankInfo);
   };
 
   return (
@@ -458,7 +472,7 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
                         </>
                       )}
 
-                      {!submitting && !submitError && paymentUrl && (
+                      {!submitting && !submitError && paymentUrl && depositAmount && (
                         <>
                           <h3 className="text-2xl font-bold text-gray-900 mb-2">{lm.step6.linkReadyTitle}</h3>
                           <p className="text-gray-600 mb-2 max-w-md mx-auto">
@@ -466,15 +480,128 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
                             <span className="font-bold text-[#D4AF37]">{depositAmount} {currency}</span>{' '}
                             {lm.step6.depositNote}
                           </p>
-                          <p className="text-sm text-gray-500 mb-8">{lm.step6.emailSentNote}</p>
-                          <a
-                            href={paymentUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn-primary inline-block"
-                          >
-                            {lm.step6.payNow} →
-                          </a>
+                          <p className="text-sm text-gray-500 mb-4">{lm.step6.emailSentNote}</p>
+
+                          {/* Choix du mode de paiement */}
+                          <div className="max-w-md mx-auto mb-6">
+                            <p className="text-sm font-medium text-gray-700 mb-3 text-left">
+                              {lang === 'nl' ? 'Kies uw betaalmethode:' : lang === 'en' ? 'Choose your payment method:' : 'Elija su método de pago:'}
+                            </p>
+                            <div className="grid grid-cols-2 gap-3">
+                              <button
+                                onClick={() => setPaymentMethod('online')}
+                                className={`p-4 rounded-lg border-2 transition-all ${
+                                  paymentMethod === 'online'
+                                    ? 'border-[#D4AF37] bg-[#D4AF37]/5'
+                                    : 'border-gray-200 hover:border-gray-300'
+                                }`}
+                              >
+                                <div className="flex items-center justify-center gap-2">
+                                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                    <line x1="1" y1="10" x2="23" y2="10"></line>
+                                  </svg>
+                                  <span className="text-sm font-medium">
+                                    {lang === 'nl' ? 'Online betalen' : lang === 'en' ? 'Pay online' : 'Pagar en línea'}
+                                  </span>
+                                </div>
+                              </button>
+                              <button
+                                onClick={() => setPaymentMethod('bank')}
+                                className={`p-4 rounded-lg border-2 transition-all ${
+                                  paymentMethod === 'bank'
+                                    ? 'border-[#D4AF37] bg-[#D4AF37]/5'
+                                    : 'border-gray-200 hover:border-gray-300'
+                                }`}
+                              >
+                                <div className="flex items-center justify-center gap-2">
+                                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                    <line x1="2" y1="11" x2="22" y2="11"></line>
+                                    <line x1="6" y1="15" x2="18" y2="15"></line>
+                                  </svg>
+                                  <span className="text-sm font-medium">
+                                    {lang === 'nl' ? 'Bankoverschrijving' : lang === 'en' ? 'Bank transfer' : 'Transferencia bancaria'}
+                                  </span>
+                                </div>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Informations bancaires */}
+                          {paymentMethod === 'bank' && (
+                            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 max-w-md mx-auto mb-6 text-left">
+                              <p className="text-sm font-semibold text-gray-900 mb-3">
+                                {lang === 'nl' ? 'Bankgegevens voor overschrijving:' : lang === 'en' ? 'Bank details for transfer:' : 'Datos bancarios para transferencia:'}
+                              </p>
+                              <div className="space-y-2 text-sm">
+                                <div className="flex justify-between py-1 border-b border-gray-100">
+                                  <span className="text-gray-500">
+                                    {lang === 'nl' ? 'Begunstigde' : lang === 'en' ? 'Beneficiary' : 'Beneficiario'}
+                                  </span>
+                                  <span className="font-medium text-gray-900">Bridge Building Sp. Z.o.o.</span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b border-gray-100">
+                                  <span className="text-gray-500">
+                                    {lang === 'nl' ? 'Bank' : lang === 'en' ? 'Bank' : 'Banco'}
+                                  </span>
+                                  <span className="font-medium text-gray-900">Banking Circle S.A.</span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b border-gray-100">
+                                  <span className="text-gray-500">IBAN</span>
+                                  <span className="font-medium text-gray-900 font-mono">LU034080000029652683</span>
+                                </div>
+                                <div className="flex justify-between py-1">
+                                  <span className="text-gray-500">BIC/SWIFT</span>
+                                  <span className="font-medium text-gray-900 font-mono">BCIRLULL</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 🔒 Bandeau sécurité paiement */}
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
+                            <p className="text-xs text-green-700 flex items-center justify-center gap-2">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <rect x="1" y="7" width="22" height="14" rx="2" ry="2" />
+                                <path d="M1 10h22" />
+                                <circle cx="12" cy="15" r="1.5" />
+                              </svg>
+                              {lang === 'nl' 
+                                ? '🔒 Veilige betaling conform DSP2 (sterke authenticatie 3D Secure)'
+                                : lang === 'en'
+                                ? '🔒 Secure payment compliant with DSP2 (3D Secure strong authentication)'
+                                : '🔒 Pago seguro conforme a DSP2 (autenticación fuerte 3D Secure)'}
+                            </p>
+                          </div>
+
+                          {/* Bouton de paiement */}
+                          {paymentMethod === 'online' ? (
+                            <a 
+                              href={paymentUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="btn-primary inline-block"
+                            >
+                              {lm.step6.payNow} →
+                            </a>
+                          ) : (
+                            <div className="space-y-3">
+                              <button
+                                onClick={copyBankDetails}
+                                className="btn-primary inline-block"
+                              >
+                                {lang === 'nl' ? '📋 Kopieer bankgegevens' : lang === 'en' ? '📋 Copy bank details' : '📋 Copiar datos bancarios'}
+                              </button>
+                              <p className="text-xs text-gray-500">
+                                {lang === 'nl' 
+                                  ? 'U kunt deze gegevens kopiëren en uw overschrijving uitvoeren via uw bank.' 
+                                  : lang === 'en' 
+                                  ? 'You can copy these details and make your transfer via your bank.' 
+                                  : 'Puede copiar estos datos y realizar su transferencia a través de su banco.'}
+                              </p>
+                            </div>
+                          )}
                         </>
                       )}
                     </div>
