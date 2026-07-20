@@ -55,6 +55,10 @@ export interface Translations {
     continue: string;
     paymentWaiting: string;
     close: string;
+    requiredField: string;
+    fileRequired: string;
+    mustAcceptTerms: string;
+    signatureRequired: string;
     step1: {
       lastName: string; firstName: string; birthDate: string; nationality: string;
       address: string; city: string; postalCode: string; country: string;
@@ -229,6 +233,10 @@ const translations: Record<Locale, Translations> = {
       continue: 'Doorgaan',
       paymentWaiting: 'Betaling in afwachting...',
       close: 'Sluiten',
+      requiredField: 'Verplicht veld',
+      fileRequired: 'Bestand vereist',
+      mustAcceptTerms: 'U moet de voorwaarden accepteren',
+      signatureRequired: 'Handtekening vereist',
       step1: {
         lastName: 'Achternaam',
         firstName: 'Voornaam',
@@ -421,6 +429,10 @@ const translations: Record<Locale, Translations> = {
       continue: 'Continue',
       paymentWaiting: 'Payment pending...',
       close: 'Close',
+      requiredField: 'Required field',
+      fileRequired: 'File required',
+      mustAcceptTerms: 'You must accept the terms',
+      signatureRequired: 'Signature required',
       step1: {
         lastName: 'Last name',
         firstName: 'First name',
@@ -613,6 +625,10 @@ const translations: Record<Locale, Translations> = {
       continue: 'Continuar',
       paymentWaiting: 'Pago pendiente...',
       close: 'Cerrar',
+      requiredField: 'Campo requerido',
+      fileRequired: 'Archivo requerido',
+      mustAcceptTerms: 'Debe aceptar las condiciones',
+      signatureRequired: 'Firma requerida',
       step1: {
         lastName: 'Apellido',
         firstName: 'Nombre',
