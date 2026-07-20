@@ -104,6 +104,8 @@ export interface Translations {
   signature: {
     signHere: string;
     clear: string;
+    legalNotice: string;
+    compliance: string;
   };
 }
 
@@ -361,6 +363,8 @@ const translations: Record<Locale, Translations> = {
     signature: {
       signHere: 'Teken in de ruimte hierboven',
       clear: 'Wissen',
+      legalNotice: 'Handtekening heeft juridische waarde',
+      compliance: 'Conform eIDAS - Gekwalificeerde elektronische handtekening',
     },
   },
   en: {
@@ -612,6 +616,8 @@ const translations: Record<Locale, Translations> = {
     signature: {
       signHere: 'Sign in the space above',
       clear: 'Clear',
+      legalNotice: 'Signature has legal value',
+      compliance: 'eIDAS compliant - Qualified electronic signature',
     },
   },
   es: {
@@ -863,6 +869,8 @@ const translations: Record<Locale, Translations> = {
     signature: {
       signHere: 'Firme en el espacio superior',
       clear: 'Borrar',
+      legalNotice: 'La firma tiene valor legal',
+      compliance: 'Conforme a eIDAS - Firma electrónica cualificada',
     },
   },
 };
