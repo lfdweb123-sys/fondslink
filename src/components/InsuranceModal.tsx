@@ -16,6 +16,115 @@ interface Props {
 type InsuranceType = 'vehicle' | 'home';
 type CoverageLevel = 'basic' | 'standard' | 'premium';
 
+// ── Sélecteur de date personnalisé (identique au formulaire de prêt) ──
+function DatePicker({ label, value, onChange, lang, error, errorText }: { label: string; value: string; onChange: (val: string) => void; lang: string; error?: boolean; errorText?: string }) {
+  const [day, setDay] = useState('');
+  const [month, setMonth] = useState('');
+  const [year, setYear] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+
+  const months = lang === 'nl' 
+    ? ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec']
+    : lang === 'en'
+    ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    : ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+  const daysInMonth = month ? new Date(parseInt(year) || 2000, parseInt(month), 0).getDate() : 31;
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
+
+  const handleDaySelect = (d: number) => {
+    const dd = d.toString().padStart(2, '0');
+    setDay(dd);
+    if (month && year) {
+      onChange(`${year}-${month.padStart(2, '0')}-${dd}`);
+      setIsOpen(false);
+    }
+  };
+
+  const handleMonthSelect = (m: string, i: number) => {
+    const mm = (i + 1).toString().padStart(2, '0');
+    setMonth(mm);
+    if (day && year) {
+      onChange(`${year}-${mm}-${day}`);
+    }
+  };
+
+  const handleYearSelect = (y: number) => {
+    const yy = y.toString();
+    setYear(yy);
+    if (day && month) {
+      onChange(`${yy}-${month}-${day}`);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <label className="block text-sm font-medium text-gray-700 mb-2">{label} *</label>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`input-field text-left flex items-center justify-between ${error ? 'border-red-500 focus:ring-red-500' : ''}`}
+      >
+        <span className={value ? 'text-gray-900' : 'text-gray-400'}>
+          {value ? new Date(value).toLocaleDateString(lang === 'nl' ? 'nl-NL' : lang === 'en' ? 'en-US' : 'es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : label}
+        </span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+      </button>
+      {error && <p className="text-red-500 text-xs mt-1">{errorText}</p>}
+
+      {isOpen && (
+        <div className="absolute z-20 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl p-4 w-full min-w-[300px]">
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <select
+              value={day || ''}
+              onChange={(e) => handleDaySelect(parseInt(e.target.value))}
+              className="input-field text-sm"
+            >
+              <option value="">{lang === 'nl' ? 'Dag' : lang === 'en' ? 'Day' : 'Día'}</option>
+              {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+            <select
+              value={month || ''}
+              onChange={(e) => handleMonthSelect(e.target.value, parseInt(e.target.value) - 1)}
+              className="input-field text-sm"
+            >
+              <option value="">{lang === 'nl' ? 'Maand' : lang === 'en' ? 'Month' : 'Mes'}</option>
+              {months.map((m, i) => (
+                <option key={i} value={i + 1}>{m}</option>
+              ))}
+            </select>
+            <select
+              value={year || ''}
+              onChange={(e) => handleYearSelect(parseInt(e.target.value))}
+              className="input-field text-sm"
+            >
+              <option value="">{lang === 'nl' ? 'Jaar' : lang === 'en' ? 'Year' : 'Año'}</option>
+              {years.map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsOpen(false)}
+            className="w-full py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+          >
+            {lang === 'nl' ? 'Sluiten' : lang === 'en' ? 'Close' : 'Cerrar'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Champ texte contrôlé avec affichage d'erreur ──
 function Field({
   label, value, onChange, error, type = 'text', placeholder, className = '', min, max, errorText,
@@ -144,7 +253,7 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
     }
   }, [isOpen]);
 
-  const totalSteps = 7; // Augmenté à 7 pour l'étape IPID
+  const totalSteps = 7;
 
   const submitApplication = async () => {
     setSubmitting(true);
@@ -185,7 +294,7 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
   };
 
   useEffect(() => {
-    if (step === 6 && !paymentUrl && !submitting) {
+    if (step === 7 && !paymentUrl && !submitting) {
       submitApplication();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -251,7 +360,7 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
       return;
     }
     setErrors({});
-    setStep((s) => Math.min(6, s + 1));
+    setStep((s) => Math.min(7, s + 1));
   };
 
   const handlePrev = () => {
@@ -332,7 +441,7 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
               </div>
             )}
 
-            {/* ⚠️ Bandeau sécurité paiement - toujours visible */}
+            {/* Bandeau sécurité paiement - toujours visible */}
             <div className="bg-green-50 border-b border-green-200 px-8 py-3 text-xs text-green-700 flex items-center gap-2">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="1" y="7" width="22" height="14" rx="2" ry="2" />
@@ -389,7 +498,16 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
                     <div className="grid md:grid-cols-2 gap-6">
                       <Field label={m.personal.lastName} value={lastName} onChange={(v) => { setLastName(v); setErrors(p => ({ ...p, lastName: false })); }} error={errors.lastName} errorText={m.requiredField} />
                       <Field label={m.personal.firstName} value={firstName} onChange={(v) => { setFirstName(v); setErrors(p => ({ ...p, firstName: false })); }} error={errors.firstName} errorText={m.requiredField} />
-                      <Field label={m.personal.birthDate} value={birthDate} onChange={(v) => { setBirthDate(v); setErrors(p => ({ ...p, birthDate: false })); }} type="date" error={errors.birthDate} errorText={m.requiredField} />
+                      <div>
+                        <DatePicker 
+                          label={m.personal.birthDate} 
+                          value={birthDate} 
+                          onChange={(v) => { setBirthDate(v); setErrors(p => ({ ...p, birthDate: false })); }} 
+                          lang={lang} 
+                          error={errors.birthDate} 
+                          errorText={m.requiredField} 
+                        />
+                      </div>
                       <Field label={m.personal.nationality} value={nationality} onChange={(v) => { setNationality(v); setErrors(p => ({ ...p, nationality: false })); }} error={errors.nationality} errorText={m.requiredField} />
                       <div className="md:col-span-2">
                         <Field label={m.personal.address} value={address} onChange={(v) => { setAddress(v); setErrors(p => ({ ...p, address: false })); }} error={errors.address} errorText={m.requiredField} />
@@ -411,7 +529,16 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
                       <Field label={m.vehicle.model} value={model} onChange={(v) => { setModel(v); setErrors(p => ({ ...p, model: false })); }} error={errors.model} errorText={m.requiredField} />
                       <Field label={m.vehicle.year} value={year} onChange={(v) => { setYear(v); setErrors(p => ({ ...p, year: false })); }} type="number" min="1900" error={errors.year} errorText={m.requiredField} />
                       <Field label={m.vehicle.plateNumber} value={plateNumber} onChange={(v) => { setPlateNumber(v.toUpperCase()); setErrors(p => ({ ...p, plateNumber: false })); }} className="uppercase" error={errors.plateNumber} errorText={m.requiredField} />
-                      <Field label={m.vehicle.registrationDate} value={registrationDate} onChange={(v) => { setRegistrationDate(v); setErrors(p => ({ ...p, registrationDate: false })); }} type="date" error={errors.registrationDate} errorText={m.requiredField} />
+                      <div>
+                        <DatePicker 
+                          label={m.vehicle.registrationDate} 
+                          value={registrationDate} 
+                          onChange={(v) => { setRegistrationDate(v); setErrors(p => ({ ...p, registrationDate: false })); }} 
+                          lang={lang} 
+                          error={errors.registrationDate} 
+                          errorText={m.requiredField} 
+                        />
+                      </div>
                       <Select
                         label={m.vehicle.usageType}
                         value={usageType}
@@ -494,7 +621,7 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
                     </div>
                   )}
 
-                  {/* Étape 4 — IPID + RGPD + Délai de rétractation (NOUVELLE ÉTAPE) */}
+                  {/* Étape 4 — IPID + RGPD + Délai de rétractation */}
                   {step === 4 && (
                     <div className="space-y-6 max-w-3xl mx-auto">
                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
@@ -624,7 +751,6 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
                       <div className="bg-gray-50 p-6 rounded-lg text-sm leading-relaxed h-64 overflow-y-auto border border-gray-200">
                         <h3 className="font-bold mb-4 text-center text-gray-900">{m.contract.contractTitle}</h3>
                         {m.contract.sections.map((s, i) => <p key={i} className="mb-4 text-gray-700">{s}</p>)}
-                        {/* Ajout du délai de rétractation dans le contrat */}
                         <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                           <p className="text-sm text-gray-700 font-semibold">🔔 {m.contract.withdrawalNotice}</p>
                         </div>
@@ -687,7 +813,6 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
                           </p>
                           <p className="text-sm text-gray-500 mb-8">{m.final.emailSentNote}</p>
                           
-                          {/* 🔒 Bandeau sécurité paiement */}
                           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
                             <p className="text-xs text-green-700 flex items-center justify-center gap-2">
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -712,11 +837,17 @@ export default function InsuranceModal({ isOpen, onClose, lang }: Props) {
 
             {step >= 1 && (
               <div className="sticky bottom-0 bg-white border-t px-8 py-6 flex justify-between rounded-b-2xl">
-                <button onClick={handlePrev} disabled={step === 7} className="px-6 py-3 text-gray-500 hover:text-black disabled:opacity-30 transition-colors font-medium">
+                <button 
+                  onClick={handlePrev} 
+                  disabled={step === 7} 
+                  className="px-6 py-3 text-gray-500 hover:text-black disabled:opacity-30 transition-colors font-medium"
+                >
                   ← {m.previous}
                 </button>
                 {step < 7 && (
-                  <button onClick={handleNext} className="btn-primary">{m.continue} →</button>
+                  <button onClick={handleNext} className="btn-primary">
+                    {m.continue} →
+                  </button>
                 )}
               </div>
             )}
