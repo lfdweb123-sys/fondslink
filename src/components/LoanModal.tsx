@@ -12,9 +12,118 @@ interface Props {
   lang: string;
 }
 
+// Sélecteur de date personnalisé professionnel
+function DatePicker({ label, value, onChange, lang }: { label: string; value: string; onChange: (val: string) => void; lang: string }) {
+  const [day, setDay] = useState('');
+  const [month, setMonth] = useState('');
+  const [year, setYear] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+
+  const months = lang === 'nl' 
+    ? ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec']
+    : lang === 'en'
+    ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    : ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+  const daysInMonth = month ? new Date(parseInt(year) || 2000, parseInt(month), 0).getDate() : 31;
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
+
+  const handleDaySelect = (d: number) => {
+    const dd = d.toString().padStart(2, '0');
+    setDay(dd);
+    if (month && year) {
+      onChange(`${year}-${month.padStart(2, '0')}-${dd}`);
+      setIsOpen(false);
+    }
+  };
+
+  const handleMonthSelect = (m: string, i: number) => {
+    const mm = (i + 1).toString().padStart(2, '0');
+    setMonth(mm);
+    if (day && year) {
+      onChange(`${year}-${mm}-${day}`);
+    }
+  };
+
+  const handleYearSelect = (y: number) => {
+    const yy = y.toString();
+    setYear(yy);
+    if (day && month) {
+      onChange(`${yy}-${month}-${day}`);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <label className="block text-sm font-medium text-gray-700 mb-2">{label} *</label>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="input-field text-left flex items-center justify-between"
+      >
+        <span className={value ? 'text-gray-900' : 'text-gray-400'}>
+          {value ? new Date(value).toLocaleDateString(lang === 'nl' ? 'nl-NL' : lang === 'en' ? 'en-US' : 'es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : label}
+        </span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-20 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl p-4 w-full min-w-[300px]">
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <select
+              value={day || ''}
+              onChange={(e) => handleDaySelect(parseInt(e.target.value))}
+              className="input-field text-sm"
+            >
+              <option value="">{lang === 'nl' ? 'Dag' : lang === 'en' ? 'Day' : 'Día'}</option>
+              {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+            <select
+              value={month || ''}
+              onChange={(e) => handleMonthSelect(e.target.value, parseInt(e.target.value) - 1)}
+              className="input-field text-sm"
+            >
+              <option value="">{lang === 'nl' ? 'Maand' : lang === 'en' ? 'Month' : 'Mes'}</option>
+              {months.map((m, i) => (
+                <option key={i} value={i + 1}>{m}</option>
+              ))}
+            </select>
+            <select
+              value={year || ''}
+              onChange={(e) => handleYearSelect(parseInt(e.target.value))}
+              className="input-field text-sm"
+            >
+              <option value="">{lang === 'nl' ? 'Jaar' : lang === 'en' ? 'Year' : 'Año'}</option>
+              {years.map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsOpen(false)}
+            className="w-full py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+          >
+            {lang === 'nl' ? 'Sluiten' : lang === 'en' ? 'Close' : 'Cerrar'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function LoanModal({ isOpen, onClose, lang }: Props) {
   const [step, setStep] = useState(1);
   const [signature, setSignature] = useState<string>('');
+  const [birthDate, setBirthDate] = useState('');
   const t = getTranslations(lang as Locale);
 
   useEffect(() => {
@@ -53,28 +162,96 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
                 <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
                   {step === 1 && (
                     <div className="grid md:grid-cols-2 gap-6">
-                      {[{ l: lm.step1.lastName }, { l: lm.step1.firstName }, { l: lm.step1.birthDate, t: 'date' }, { l: lm.step1.nationality }, { l: lm.step1.address, col: true }, { l: lm.step1.city }, { l: lm.step1.postalCode }, { l: lm.step1.country }, { l: lm.step1.phone, t: 'tel' }, { l: lm.step1.email, t: 'email', col: true }].map((f, i) => (
-                        <div key={i} className={f.col ? 'md:col-span-2' : ''}>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">{f.l} *</label>
-                          <input type={f.t || 'text'} placeholder={f.l} className="input-field" required />
-                        </div>
-                      ))}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.lastName} *</label>
+                        <input type="text" placeholder={lm.step1.lastName} className="input-field" required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.firstName} *</label>
+                        <input type="text" placeholder={lm.step1.firstName} className="input-field" required />
+                      </div>
+                      <div>
+                        <DatePicker label={lm.step1.birthDate} value={birthDate} onChange={setBirthDate} lang={lang} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.nationality} *</label>
+                        <input type="text" placeholder={lm.step1.nationality} className="input-field" required />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.address} *</label>
+                        <input type="text" placeholder={lm.step1.address} className="input-field" required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.city} *</label>
+                        <input type="text" placeholder={lm.step1.city} className="input-field" required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.postalCode} *</label>
+                        <input type="text" placeholder={lm.step1.postalCode} className="input-field" required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.country} *</label>
+                        <input type="text" placeholder={lm.step1.country} className="input-field" required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.phone} *</label>
+                        <input type="tel" placeholder={lm.step1.phone} className="input-field" required />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step1.email} *</label>
+                        <input type="email" placeholder={lm.step1.email} className="input-field" required />
+                      </div>
                     </div>
                   )}
                   {step === 2 && (
                     <div className="space-y-6 max-w-md mx-auto">
-                      <div><label className="block text-sm font-medium text-gray-700 mb-2">{lm.step2.amountRequested} *</label><div className="flex gap-2"><input type="number" className="input-field flex-1" placeholder="0" min="0" required /><select className="input-field w-24"><option>EUR</option><option>USD</option><option>GBP</option></select></div></div>
-                      <div><label className="block text-sm font-medium text-gray-700 mb-2">{lm.step2.duration} *</label><input type="number" placeholder="12" className="input-field" min="1" max="360" required /></div>
-                      <div><label className="block text-sm font-medium text-gray-700 mb-2">{lm.step2.monthlyIncome} *</label><input type="number" placeholder="0" className="input-field" min="0" required /></div>
-                      <div><label className="block text-sm font-medium text-gray-700 mb-2">{lm.step2.profession} *</label><input placeholder={lm.step2.profession} className="input-field" required /></div>
-                      <div><label className="block text-sm font-medium text-gray-700 mb-2">{lm.step2.employer}</label><input placeholder={lm.step2.employer} className="input-field" /></div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step2.amountRequested} *</label>
+                        <div className="flex gap-2">
+                          <input type="number" className="input-field flex-1" placeholder="0" min="0" required />
+                          <select className="input-field w-24">
+                            <option>EUR</option>
+                            <option>USD</option>
+                            <option>GBP</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step2.duration} *</label>
+                        <input type="number" placeholder="12" className="input-field" min="1" max="360" required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step2.monthlyIncome} *</label>
+                        <input type="number" placeholder="0" className="input-field" min="0" required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step2.profession} *</label>
+                        <input type="text" placeholder={lm.step2.profession} className="input-field" required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step2.employer}</label>
+                        <input type="text" placeholder={lm.step2.employer} className="input-field" />
+                      </div>
                     </div>
                   )}
                   {step === 3 && (
                     <div className="space-y-6 max-w-md mx-auto">
-                      {[lm.step3.bankName, lm.step3.iban, lm.step3.bic, lm.step3.accountHolder].map((f, i) => (
-                        <div key={i}><label className="block text-sm font-medium text-gray-700 mb-2">{f} *</label><input placeholder={f} className={`input-field ${i === 1 || i === 2 ? 'uppercase' : ''}`} required /></div>
-                      ))}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step3.bankName} *</label>
+                        <input type="text" placeholder={lm.step3.bankName} className="input-field" required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step3.iban} *</label>
+                        <input type="text" placeholder={lm.step3.iban} className="input-field uppercase" required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step3.bic} *</label>
+                        <input type="text" placeholder={lm.step3.bic} className="input-field uppercase" required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{lm.step3.accountHolder} *</label>
+                        <input type="text" placeholder={lm.step3.accountHolder} className="input-field" required />
+                      </div>
                     </div>
                   )}
                   {step === 4 && (
@@ -102,7 +279,10 @@ export default function LoanModal({ isOpen, onClose, lang }: Props) {
                         <input type="checkbox" className="mt-1 w-5 h-5 accent-[#D4AF37]" />
                         <span className="text-sm text-gray-700">{lm.step5.acceptTerms}</span>
                       </label>
-                      <div><label className="block text-sm font-medium text-gray-700 mb-3">{lm.step5.yourSignature}</label><SignaturePad onSign={(data) => setSignature(data)} lang={lang} /></div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-3">{lm.step5.yourSignature}</label>
+                        <SignaturePad onSign={(data) => setSignature(data)} lang={lang} />
+                      </div>
                     </div>
                   )}
                   {step === 6 && (
